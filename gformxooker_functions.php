@@ -101,7 +101,7 @@ function gformstripecustom_after_submit_getstarted( $entry, $form ) {
     $allowPromocode = rgar($form, 'gformstripcustom_allow_promo_code');
     $taxIdCollection = rgar($form, 'gformstripcustom_tax_id_collection');
 
-    if(!isset($entry[(int) $customerEmail])) {
+    if(!rgar($entry, $customerEmail)) {
         return;
     }
 
@@ -113,12 +113,12 @@ function gformstripecustom_after_submit_getstarted( $entry, $form ) {
         !$successUrl ||
         !$customerEmail ||
         !$productFieldId ||
-        !isset($entry[(int) $productFieldId])
+        !rgar($entry, $productFieldId)
     ) {
         return;
     }
 
-    $theProduct = $entry[(int) $productFieldId];
+    $theProduct = rgar($entry, $productFieldId);
     $theProductExtract = explode("|", $theProduct);
     array_pop($theProductExtract);
     $theProductValue = implode("|", $theProductExtract);
@@ -139,7 +139,7 @@ function gformstripecustom_after_submit_getstarted( $entry, $form ) {
     }
 
     $stripeParams = array(
-        'customer_email' => $entry[(int) $customerEmail],
+        'customer_email' => rgar($entry, $customerEmail),
         'payment_method_types' => explode(",", $paymentMethods),
         'line_items' => $productsArray,
         'mode' => $paymentMode,
