@@ -216,11 +216,13 @@ add_action( 'gform_after_submission', 'gformstripecustom_after_submit_getstarted
 function gformxooker_url_assigner( $entry, $string="" ) {
     $needToReplace = array(
         '{entryId}',
-        '{formUrl}'
+        '{formUrl}',
+        '{homeUrl}'
     );
     $replaceTo = array(
         $entry['id'],
-        urlencode(gform_get_meta( $entry['id'], 'gform_xooker_partial_token_url' ))
+        urlencode(gform_get_meta( $entry['id'], 'gform_xooker_partial_token_url' )),
+        home_url()
     );
     return str_replace($needToReplace, $replaceTo, $string);
 }
