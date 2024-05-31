@@ -186,7 +186,7 @@ function gformstripecustom_form_setting( $settings, $form ) {
         <tr>
            <td>
                 <div class="gform-settings-field__header">
-                    <p>For URL\'s you can use these shortcodes to replace <code>{entryId}</code> <code>{CHECKOUT_SESSION_ID}</code></p>
+                    <p>For URL\'s you can use these shortcodes to replace <code>{entryId}</code> <code>{CHECKOUT_SESSION_ID}</code> <code>{formUrl}</code></p>
                     <label class="gform-settings-label gform-settings-field__header" for="gformstripcustom_cancel_url">
                         Cancel Page URL
                     </label>

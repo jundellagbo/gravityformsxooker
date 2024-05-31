@@ -35,12 +35,19 @@
     return gf_stripe()->get_secret_api_key();
  }
 
- function gformstripecustom_get_post_id_by_metakey_value( $metakey, $metavalue ) {
-    global $wpdb;
-    $tbl = $wpdb->prefix.'postmeta';
-    $prepare_guery = $wpdb->prepare( "SELECT post_id FROM $tbl where meta_key=%s and meta_value=%s", array( $metakey, $metavalue ));
-    $get_values = $wpdb->get_col( $prepare_guery );
-    $postID = count($get_values) ? $get_values[0] : null;
+ function gformstripecustom_get_post_id_by_metakey_value( $metakey, $metavalue, $posttype="gform_stripe_product" ) {
+    $postQuery = get_posts(
+        array(
+            'post_type' => $posttype,
+            'meta_query' => array(
+              array(
+                'key' => $metakey,
+                'value' => $metavalue
+              )
+            ),
+        ) 
+    );
+    $postID = count($postQuery) ? $postQuery[0]->ID : null;
     return $postID;
  }
 
@@ -138,6 +145,8 @@ function gformstripecustom_after_submit_getstarted( $entry, $form ) {
         return;
     }
 
+    // generate a token link to autofill from link.
+    gformxooker_generate_backlink($entry);
     $stripeParams = array(
         'customer_email' => rgar($entry, $customerEmail),
         'payment_method_types' => explode(",", $paymentMethods),
@@ -185,6 +194,19 @@ function gformstripecustom_after_submit_getstarted( $entry, $form ) {
     if($redirectUrl) {
         $redirectProcess = $entrySuccessURL;
     }
+
+    gform_update_meta( $entry['id'], 'gformxooker_stripe_checkout_process', 'pending' );
+
+    $notification_data = array(
+        'gformxooker' => array(
+            'checkouturl' => $res->url,
+            'entry' => $entry,
+            'form' => $form,
+            'session' => $res
+        )
+    );
+
+    GFAPI::send_notifications( $form, $entry, 'gform_xooker_checkout_process', $notification_data);
     wp_redirect($redirectProcess);
     exit;
 }
@@ -193,20 +215,78 @@ add_action( 'gform_after_submission', 'gformstripecustom_after_submit_getstarted
 
 function gformxooker_url_assigner( $entry, $string="" ) {
     $needToReplace = array(
-        '{entryId}'
+        '{entryId}',
+        '{formUrl}'
     );
-
     $replaceTo = array(
-        $entry['id']
+        $entry['id'],
+        urlencode(gform_get_meta( $entry['id'], 'gform_xooker_partial_token_url' ))
     );
-
     return str_replace($needToReplace, $replaceTo, $string);
 }
 
 
 add_filter( 'gform_notification_events', 'gform_xooker_notification_add_event' );
 function gform_xooker_notification_add_event( $notification_events ) {
-    $notification_events['gform_xooker_checkout_success'] = __( 'Stripe Checkout Success', 'gravityforms' );
-    $notification_events['gform_xooker_checkout_canceled'] = __( 'Stripe Checkout Canceled', 'gravityforms' );
+    $notification_events['gform_xooker_checkout_success'] = __( 'GForm Xooker: Success', 'gravityforms' );
+    $notification_events['gform_xooker_checkout_canceled'] = __( 'GForm Xooker: Canceled', 'gravityforms' );
+    $notification_events['gform_xooker_checkout_process'] = __( 'GForm Xooker: Process', 'gravityforms' );
+    $notification_events['gform_xooker_abandoned_entry'] = __( 'GForm Xooker: Abandoned Entry', 'gravityforms' );
     return $notification_events;
+}
+
+function gformxooker_generate_backlink($entry) {
+    $entry = GFAPI::get_entry($entry['id']);
+    $uniqid = uniqid();
+    $source_url            = $entry['source_url'];
+    $source_url            = add_query_arg( array( 'gf_ref' => $uniqid ), $source_url );
+    $resume_url            = esc_url_raw( $source_url );
+
+    // generate a token link to autofill from link.
+    if(!gform_get_meta( $entry['id'], 'gform_xooker_partial_token_url' )) {
+        gform_update_meta( $entry['id'], 'gform_xooker_partial_token_url', $resume_url );
+        gform_update_meta( $entry['id'], 'gform_xooker_partial_token', $uniqid );
+    }
+}
+
+function gform_xooker_partial_entry_bind_event( $partial_entry ) {
+    gformxooker_generate_backlink($partial_entry);
+}
+add_action( 'gform_partialentries_post_entry_saved', 'gform_xooker_partial_entry_bind_event' );
+add_action( 'gform_partialentries_post_entry_updated', 'gform_xooker_partial_entry_bind_event' );
+
+
+# notifications for abandoned entries
+add_action( 'gformxooker_scheduled_partial_email', 'gformxooker_scheduled_partial_email_exec' );
+function gformxooker_scheduled_partial_email_exec() {
+    // abandoned partial entries notification will send to each user to remind them to finish the signup process.
+    // possibly there is 5 minutes delay.
+    // will notify those partial entries updated after 30 minutes.
+    $start_date                    = date( 'Y-m-d', strtotime('-30 minutes'));
+    $end_date                      = date( 'Y-m-d', time() );
+    $search_criteria['start_date'] = $start_date;
+    $search_criteria['end_date']   = $end_date;
+    $search_criteria['field_filters'][] = array( 'key' => 'partial_entry_percent', 'operator' => '!=', 'value' => '' );
+    $search_criteria['field_filters'][] = array( 'key' => 'gformxooker_partial_token_email_sent', 'operator' => '!=', 'value' => '1' );
+    $results = GFAPI::get_entries( 0, $search_criteria );
+    foreach( $results as $ent ) {
+        $entry = GFAPI::get_entry($ent['id']);
+        $formId = $entry['form_id'];
+        $form = GFAPI::get_form($formId);
+
+        if(!empty($entry['partial_entry_percent'])) {
+            $tokenLink = gform_get_meta( $ent['id'], 'gform_xooker_partial_token_url' );
+            $notification_data = array(
+                'gformxooker' => array(
+                    'link' => $tokenLink,
+                    'entry' => $entry,
+                    'form' => $form
+                )
+            );
+            GFAPI::send_notifications( $form, $entry, 'gform_xooker_abandoned_entry', $notification_data);
+            gform_update_meta( $ent['id'], 'gformxooker_partial_token_email_sent', 1 );
+        }
+    }
+
+    return true;
 }

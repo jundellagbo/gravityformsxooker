@@ -14,6 +14,11 @@ add_action( 'rest_api_init', function () {
     'callback' => 'gformxooker_success_purchase',
   ));
 
+  register_rest_route( 'gformxooker/v1', '/gform-entry-checkout-canceled', array(
+    'methods' => 'POST',
+    'callback' => 'gformxooker_checkout_canceled',
+  ));
+
   register_rest_route( 'gformxooker/v1', '/gform-products-to-posts', array(
     'methods' => 'GET',
     'callback' => 'gformxooker_products_to_posts',
@@ -22,6 +27,11 @@ add_action( 'rest_api_init', function () {
   register_rest_route( 'gformxooker/v1', 'process-payment', array(
     'methods' => 'GET',
     'callback' => 'gformxooker_process_payment',
+  ));
+
+  register_rest_route( 'gformxooker/v1', 'test_dev', array(
+    'methods' => 'GET',
+    'callback' => 'test_dev',
   ));
 });
 
@@ -121,7 +131,17 @@ function gformxooker_success_purchase( WP_REST_Request $request ) {
         gform_delete_meta( $entry['id'], 'ezhire_entry_checkout_url' );
         gform_update_meta( $entry['id'], 'ezhire_entry_is_checkout_success', 1 );
 
-        GFAPI::send_notifications( $form, $entry, 'gform_xooker_checkout_success');
+        gform_update_meta( $entry['id'], 'gformxooker_stripe_checkout_process', 'finish' );
+        
+        $notification_data = array(
+            'gformxooker' => array(
+                'checkouturl' => $res->url,
+                'entry' => $entry,
+                'form' => $form,
+                'session' => $res
+            )
+        );
+        GFAPI::send_notifications( $form, $entry, 'gform_xooker_checkout_success', $notification_data);
 
         do_action('gform_xooker_stripe_success_payment', array(
             'entry' => $entryid,
@@ -144,12 +164,33 @@ function gformxooker_success_purchase( WP_REST_Request $request ) {
 function gformxooker_checkout_canceled( WP_REST_Request $request ) {
     $entryid = $request->get_param( 'entryId' );
     $sessionId = $request->get_param( 'sessionId' );
-    GFAPI::send_notifications( $form, $entry, 'gform_xooker_checkout_canceled');
+
+    $entry = GFAPI::get_entry($entryid);
+    $formId = $entry['form_id'];
+    $form = GFAPI::get_form($formId);
+    
+    $gfstripe = new GFStripe();
+    $gfstripe->include_stripe_api();
+
+    \Stripe\Stripe::setApiKey( gformstripecustom_secret_api() );
+    $res = \Stripe\Checkout\Session::retrieve($sessionId,[]);
+    
+    $notification_data = array(
+        'gformxooker' => array(
+            'checkouturl' => $res->url,
+            'entry' => $entry,
+            'form' => $form,
+            'session' => $res
+        )
+    );
+    GFAPI::send_notifications( $form, $entry, 'gform_xooker_checkout_canceled', $notification_data);
 
     do_action('gform_xooker_stripe_cancel_payment', array(
         'entry' => $entryid,
         'session' => $sessionId
     ));
+
+    return $res->url;
 }
 
 
@@ -233,5 +274,10 @@ function gformxooker_process_payment( WP_REST_Request $request ) {
         wp_remote_post(get_rest_url(null, '/gformxooker/v1/gform-entry-checkout-success'), $args);
     }
 
-    wp_redirect($redirectUrl);
+    wp_redirect(urldecode($redirectUrl));
+}
+
+
+function test_dev() {
+    return 1;
 }
