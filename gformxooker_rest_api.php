@@ -29,10 +29,6 @@ add_action( 'rest_api_init', function () {
     'callback' => 'gformxooker_process_payment',
   ));
 
-  register_rest_route( 'gformxooker/v1', 'test_dev', array(
-    'methods' => 'GET',
-    'callback' => 'test_dev',
-  ));
 });
 
 function gformxooker_get_entry_checkout_url( WP_REST_Request $request ) {
@@ -216,8 +212,22 @@ function gformxooker_products_to_posts( WP_REST_Request $request ) {
 
     $res = $stripe->prices->all($apiArgs);
     foreach($res['data'] as $price) {
+
+        $interval = $price['recurring']['interval'];
+        $interval_count =  $price['recurring']['interval_count'];
+        $amount = $price['unit_amount'];
+        $intervallabel = $interval_count < 2 ? 'per' : 'every ' . $interval_count;
+        if(!$interval) {
+            $intervallabel = "";
+        }
+        $intervalsuffix = str_contains($intervallabel, 'every') ? 's' : '';
+        $productName = $price['product']['name'] . " (" . gformstripecustom_money_get_format($amount) . ' ' . strtoupper( (string) $price['currency'] ) . " $intervallabel $interval$intervalsuffix)";
+        if(!$price['product']['active']) {
+            $productName .= " | Archived";
+        }
+
         $args = array(
-            'post_title'   => $price['product']['name'],
+            'post_title'   => $productName,
             'post_content' => $price['product']['description'],
             'post_status'  => 'publish',
             'post_type' => 'gform_stripe_product',
@@ -228,7 +238,8 @@ function gformxooker_products_to_posts( WP_REST_Request $request ) {
                 'gform_xooker_price_recurring_interval_count' => $price['recurring']['interval_count'],
                 'gform_xooker_price_trial_period' => $price['recurring']['trial_period_days'],
                 'gform_xooker_price_amount' => $price['unit_amount'],
-                'gform_xooker_price_currency' => $price['currency']
+                'gform_xooker_price_currency' => $price['currency'],
+                'gform_xooker_product_active' => $price['product']['active']
             )
         );
         $postID = gformstripecustom_get_post_id_by_metakey_value( 'gform_xooker_price_id', $price['id'] );
@@ -275,9 +286,5 @@ function gformxooker_process_payment( WP_REST_Request $request ) {
     }
 
     wp_redirect(urldecode($redirectUrl));
-}
-
-
-function test_dev() {
-    return 1;
+    exit();
 }

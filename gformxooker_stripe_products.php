@@ -42,7 +42,12 @@ function action_custom_columns_content ( $column_id, $post_id ) {
     switch( $column_id ) { 
 
         case 'gformxooker_stripe_product_id':
-            echo $post_id;
+            $isactive = get_post_meta($post_id, 'gform_xooker_product_active', true );
+            $archivedHtml = "";
+            if(!$isactive) {
+                $archivedHtml = "<span style='border-radius: 5px; margin-left: 5px; background: gray; color: #fff; padding: 5px 10px; font-size:12px; display:inline-block;'>Archived</span>";
+            }
+            echo $post_id . " " . $archivedHtml;
         break;
 
         case 'gformxooker_stripe_price_id':
