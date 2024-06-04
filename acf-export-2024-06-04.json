@@ -166,6 +166,26 @@
                 "step": "",
                 "prepend": "",
                 "append": ""
+            },
+            {
+                "key": "field_665f5781b8e29",
+                "label": "Description for the product upon checkout.",
+                "name": "gform_addon_custom_description",
+                "aria-label": "",
+                "type": "textarea",
+                "instructions": "",
+                "required": 0,
+                "conditional_logic": 0,
+                "wrapper": {
+                    "width": "",
+                    "class": "",
+                    "id": ""
+                },
+                "default_value": "",
+                "maxlength": "",
+                "rows": "",
+                "placeholder": "",
+                "new_lines": ""
             }
         ],
         "location": [
