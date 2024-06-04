@@ -99,7 +99,7 @@ function action_custom_columns_content ( $column_id, $post_id ) {
         case 'gformxooker_stripe_value_used':
             $gformvalueused = get_field( 'gform_acf_addon_product_value_form', $post_id );
             if($gformvalueused) {
-                echo '<span class="e-button">' . $gformvalueused . '</span>';
+                echo '<span class="e-button" style="user-select: all;">' . $gformvalueused . '</span>';
             }
         break;
    }
