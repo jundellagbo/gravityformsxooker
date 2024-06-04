@@ -288,3 +288,17 @@ function gformxooker_process_payment( WP_REST_Request $request ) {
     wp_redirect(urldecode($redirectUrl));
     exit();
 }
+
+
+function gformxooker_get_customer_id_by_email( $email ) {
+    $gfstripe = new GFStripe();
+    $gfstripe->include_stripe_api();
+    \Stripe\Stripe::setApiKey(gf_stripe()->get_secret_api_key());
+    $stripe = new \Stripe\StripeClient(gf_stripe()->get_secret_api_key());
+    $apiArgs = array(
+        'limit' => 1,
+        'email' => $email
+    );
+    $res = $stripe->customers->all($apiArgs);
+    return count($res->data) ? $res->data[0]->id : null;
+}

@@ -131,7 +131,8 @@ function gformstripecustom_after_submit_getstarted( $entry, $form ) {
     $theProductValue = implode("|", $theProductExtract);
 
     $productsArray = array();
-    $post_id = gformstripecustom_get_post_id_by_metakey_value( 'gform_acf_addon_product_value_form', $theProductValue );
+    $post_id = gformstripecustom_get_post_id_by_metakey_value( 'gform_acf_addon_product_value_form', $theProduct );
+    if(!$post_id) { return; }
     $productsArray[] = gformstripecustom_post_product_handler_setter( $post_id );
 
     // addons handling
@@ -148,7 +149,6 @@ function gformstripecustom_after_submit_getstarted( $entry, $form ) {
     // generate a token link to autofill from link.
     gformxooker_generate_backlink($entry);
     $stripeParams = array(
-        'customer_email' => rgar($entry, $customerEmail),
         'payment_method_types' => explode(",", $paymentMethods),
         'line_items' => $productsArray,
         'mode' => $paymentMode,
@@ -182,6 +182,14 @@ function gformstripecustom_after_submit_getstarted( $entry, $form ) {
 
     if($taxIdCollection) {
         $stripeParams['tax_id_collection']['enabled'] = (boolean) $taxIdCollection;
+    }
+
+    // getting your customer id by your email address for unique transaction of customer
+    $customerId = gformxooker_get_customer_id_by_email( rgar($entry, $customerEmail) );
+    if(!$customerId) {
+        $stripeParams['customer_email'] = rgar($entry, $customerEmail);
+    } else {
+        $stripeParams['customer'] = $customerId;
     }
 
     // Stripe Checkout Session starts here.
