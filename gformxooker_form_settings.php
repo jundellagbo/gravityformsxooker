@@ -168,20 +168,6 @@ function gformstripecustom_form_setting( $settings, $form ) {
             </tr>';
 
 
-        $taxIdCollection = rgar($form, 'gformstripcustom_tax_id_collection');
-        $taxIdCollection = $taxIdCollection == 1 ? "checked" : "";
-
-        $settings[ __( 'Stripe Settings', 'gravityforms' ) ]['gformstripcustom_tax_id_collection'] = '
-            <tr>
-            <td>
-                    <label class="gform-settings-label" for="gformstripcustom_tax_id_collection">
-                        <input value="1" name="gformstripcustom_tax_id_collection" type="checkbox" '.$taxIdCollection.'>
-                        Allow business customers to provide tax IDs
-                    </label>
-                </td>
-            </tr>';
-
-
     $settings[ __( 'Stripe Settings', 'gravityforms' ) ]['gformstripcustom_cancel_url'] = '
         <tr>
            <td>
@@ -239,9 +225,7 @@ function gformstripecustom_form_setting_save($form) {
         'gformstripcustom_customer_email_field',
         'gformstripcustom_collect_tax_automatically',
         'gformstripcustom_collect_customer_phone_number',
-        'gformstripcustom_allow_promo_code',
-        'gformstripcustom_tax_id_collection',
-        //'gformstripcustom_product_dynamic_ids'
+        'gformstripcustom_allow_promo_code'
     );
 
     foreach($formsettings as $fs) {

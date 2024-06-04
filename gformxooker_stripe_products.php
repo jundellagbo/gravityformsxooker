@@ -51,6 +51,9 @@ function action_custom_columns_content ( $column_id, $post_id ) {
         break;
 
         case 'gformxooker_stripe_price_id':
+
+            echo '<p>' . get_field( 'gform_addon_custom_description', $post_id ) . '</p>';
+
             $price = get_post_meta($post_id, 'gform_xooker_price_id', true );
             if($price) {
                 echo '<code>' . $price . '</code>';

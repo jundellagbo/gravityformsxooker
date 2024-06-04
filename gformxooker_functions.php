@@ -73,6 +73,11 @@
             ),
             'quantity' => 1
         );
+
+        if(get_field( 'gform_addon_custom_description', $post_id )) {
+            $product['price_data']['product_data']['description'] = get_field( 'gform_addon_custom_description', $post_id );
+        }
+
         if($interval && $interval_count) {
             $product['price_data']['recurring'] = array(
                 'interval_count' => $interval_count,
@@ -106,7 +111,6 @@ function gformstripecustom_after_submit_getstarted( $entry, $form ) {
     $isEnabledTaxAutomatic = rgar($form, 'gformstripcustom_collect_tax_automatically');
     $phoneCollection = rgar($form, 'gformstripcustom_collect_customer_phone_number');
     $allowPromocode = rgar($form, 'gformstripcustom_allow_promo_code');
-    $taxIdCollection = rgar($form, 'gformstripcustom_tax_id_collection');
 
     if(!rgar($entry, $customerEmail)) {
         return;
@@ -178,10 +182,6 @@ function gformstripecustom_after_submit_getstarted( $entry, $form ) {
 
     if($allowPromocode) {
         $stripeParams['allow_promotion_codes'] = (boolean) $allowPromocode;
-    }
-
-    if($taxIdCollection) {
-        $stripeParams['tax_id_collection']['enabled'] = (boolean) $taxIdCollection;
     }
 
     // getting your customer id by your email address for unique transaction of customer
