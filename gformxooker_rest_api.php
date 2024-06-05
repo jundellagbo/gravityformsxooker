@@ -222,9 +222,6 @@ function gformxooker_products_to_posts( WP_REST_Request $request ) {
         }
         $intervalsuffix = str_contains($intervallabel, 'every') ? 's' : '';
         $productName = $price['product']['name'] . " (" . gformstripecustom_money_get_format($amount) . ' ' . strtoupper( (string) $price['currency'] ) . " $intervallabel $interval$intervalsuffix)";
-        if(!$price['product']['active']) {
-            $productName .= " | Archived";
-        }
 
         $args = array(
             'post_title'   => $productName,
@@ -242,12 +239,15 @@ function gformxooker_products_to_posts( WP_REST_Request $request ) {
                 'gform_xooker_product_active' => $price['product']['active']
             )
         );
+        // only store those active products.
         $postID = gformstripecustom_get_post_id_by_metakey_value( 'gform_xooker_price_id', $price['id'] );
-        if($postID) {
-            $args['ID'] = $postID;
-            wp_update_post( $args, true );
-        } else {
-            wp_insert_post( $args, true );
+        if($price['product']['active']) {
+            if($postID) {
+                $args['ID'] = $postID;
+                wp_update_post( $args, true );
+            } else {
+                wp_insert_post( $args, true );
+            }
         }
     }
 
