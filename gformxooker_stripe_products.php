@@ -114,16 +114,19 @@ function gformxooker_custom_button_post() {
 
     ?>
         <script type="text/javascript">
-            async function gformSyncProductsStripe() {
-                var gformSyncProductElem = jQuery('.gform-pull-stripe-products');
-                gformSyncProductElem.text('Syncing products...');
-                gformSyncProductElem.attr('disabled', true);
+            async function gformSyncProductsStripe(elem=null) {
+                if(elem) {
+                    elem.text('Loading...');
+                    elem.attr('disabled', true);
+                }
                 
                 const response = await fetch("<?php echo get_rest_url(null, "/gformxooker/v1/gform-products-to-posts"); ?>");
                 const stripeproducts = await response.json();
 
-                gformSyncProductElem.text(gformSyncProductElem.data('text'));
-                gformSyncProductElem.attr('disabled', false);
+                if(elem) {
+                    elem.text(elem.data('text'));
+                    elem.attr('disabled', false);
+                }
 
                 if(stripeproducts.has_more) {
                     alert('Products Batch has been synced, sync more for another batch.');
@@ -133,13 +136,41 @@ function gformxooker_custom_button_post() {
 
                 window.location.reload();
             }
+
+            async function gformResetSyncProductsStripe(elem=null) {
+                if(elem) {
+                    elem.text('Loading...');
+                    elem.attr('disabled', true);
+                }
+
+                const response = await fetch("<?php echo get_rest_url(null, "/gformxooker/v1/reset-product-sync"); ?>");
+                if(elem) {
+                    elem.text(elem.data('text'));
+                    elem.attr('disabled', false);
+                }
+
+                alert('Product Sync has been reset.');
+            }
             
             jQuery(document).ready( function()
             {
-                jQuery(jQuery("ul.subsubsub")[0]).append('<li class="sync"><button type="button" class="button gform-pull-stripe-products" data-text="Pull Missing Products from Stripe">Pull Missing Products from Stripe</button></li>');
+                jQuery(jQuery("ul.subsubsub")[0]).append(`
+                    <li class="sync">
+                        <button type="button" class="button gform-pull-stripe-products" data-text="Pull Missing Products from Stripe">
+                            Pull Missing Products from Stripe
+                        </button> 
+                        <button type="button" class="button gform-reset-sync" data-text="Reset Sync">
+                            Reset Sync
+                        </button>
+                    </li>`);
                 
                 jQuery('.gform-pull-stripe-products').on('click', function() {
-                    gformSyncProductsStripe();
+                    gformSyncProductsStripe(jQuery(this));
+                    return false;
+                });
+
+                jQuery('.gform-reset-sync').on('click', function() {
+                    gformResetSyncProductsStripe(jQuery(this));
                     return false;
                 });
             });

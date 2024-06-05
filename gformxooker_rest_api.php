@@ -29,6 +29,10 @@ add_action( 'rest_api_init', function () {
     'callback' => 'gformxooker_process_payment',
   ));
 
+  register_rest_route( 'gformxooker/v1', 'reset-product-sync', array(
+    'methods' => 'GET',
+    'callback' => 'gformxooker_reset_sync',
+  ));
 });
 
 function gformxooker_get_entry_checkout_url( WP_REST_Request $request ) {
@@ -202,7 +206,7 @@ function gformxooker_products_to_posts( WP_REST_Request $request ) {
     $stripe = new \Stripe\StripeClient(gf_stripe()->get_secret_api_key());
     $apiArgs = array(
         'limit' => 10,
-        'expand' => ['data.product']
+        'expand' => ['data.default_price']
     );
 
     $nextPage = get_option('gform_xooker_stripe_product_next_id');
@@ -210,43 +214,37 @@ function gformxooker_products_to_posts( WP_REST_Request $request ) {
         $apiArgs['starting_after'] = $nextPage;
     }
 
-    $res = $stripe->prices->all($apiArgs);
-    foreach($res['data'] as $price) {
-
-        $interval = $price['recurring']['interval'];
-        $interval_count =  $price['recurring']['interval_count'];
-        $amount = $price['unit_amount'];
-        $intervallabel = $interval_count < 2 ? 'per' : 'every ' . $interval_count;
-        if(!$interval) {
-            $intervallabel = "";
-        }
-        $intervalsuffix = str_contains($intervallabel, 'every') ? 's' : '';
-        $productName = $price['product']['name'] . " (" . gformstripecustom_money_get_format($amount) . ' ' . strtoupper( (string) $price['currency'] ) . " $intervallabel $interval$intervalsuffix)";
-
-        $args = array(
-            'post_title'   => $productName,
-            'post_content' => $price['product']['description'],
-            'post_status'  => 'publish',
-            'post_type' => 'gform_stripe_product',
-            'meta_input' => array(
-                'gform_xooker_api_response' => json_encode($price),
-                'gform_xooker_price_id' => $price['id'],
-                'gform_xooker_price_recurring_interval' => $price['recurring']['interval'],
-                'gform_xooker_price_recurring_interval_count' => $price['recurring']['interval_count'],
-                'gform_xooker_price_trial_period' => $price['recurring']['trial_period_days'],
-                'gform_xooker_price_amount' => $price['unit_amount'],
-                'gform_xooker_price_currency' => $price['currency'],
-                'gform_xooker_product_active' => $price['product']['active']
-            )
-        );
-        // only store those active products.
-        $postID = gformstripecustom_get_post_id_by_metakey_value( 'gform_xooker_price_id', $price['id'] );
-        if($price['product']['active']) {
-            if($postID) {
-                $args['ID'] = $postID;
-                wp_update_post( $args, true );
-            } else {
-                wp_insert_post( $args, true );
+    $res = $stripe->products->all($apiArgs);
+    foreach($res['data'] as $product) {
+        $price = $product['default_price'];
+        if($price) {
+            $productName = $product['name'];
+            $args = array(
+                'post_title'   => $productName,
+                'post_content' => $product['description'],
+                'post_status'  => 'publish',
+                'post_type' => 'gform_stripe_product',
+                'meta_input' => array(
+                    'gform_xooker_api_response' => json_encode($price),
+                    'gform_xooker_price_id' => $price['id'],
+                    'gform_xooker_product_id' => $product['id'],
+                    'gform_xooker_price_recurring_interval' => $price['recurring']['interval'],
+                    'gform_xooker_price_recurring_interval_count' => $price['recurring']['interval_count'],
+                    'gform_xooker_price_trial_period' => $price['recurring']['trial_period_days'],
+                    'gform_xooker_price_amount' => $price['unit_amount'],
+                    'gform_xooker_price_currency' => $price['currency'],
+                    'gform_xooker_product_active' => $product['active']
+                )
+            );
+            // only store those active products.
+            $postID = gformstripecustom_get_post_id_by_metakey_value( 'gform_xooker_product_id', $product['id'] );
+            if($product['active'] && $price['active']) {
+                if($postID) {
+                    $args['ID'] = $postID;
+                    wp_update_post( $args, true );
+                } else {
+                    wp_insert_post( $args, true );
+                }
             }
         }
     }
@@ -301,4 +299,9 @@ function gformxooker_get_customer_id_by_email( $email ) {
     );
     $res = $stripe->customers->all($apiArgs);
     return count($res->data) ? $res->data[0]->id : null;
+}
+
+
+function gformxooker_reset_sync() {
+    update_option('gform_xooker_stripe_product_next_id', null);
 }
