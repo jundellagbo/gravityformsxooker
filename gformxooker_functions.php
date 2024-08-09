@@ -14,6 +14,10 @@
     return number_format(gformstripecustom_money_get($money) , 2, '.', '');
  }
 
+ function gformstripedate_format($date, $format="m-d-Y") {
+    return date($format, $date);
+ }
+
 
  // check if there is transaction
  function gformstripecustom_has_transaction( $entry ) {

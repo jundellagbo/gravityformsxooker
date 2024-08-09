@@ -206,6 +206,20 @@ function gformstripecustom_form_setting( $settings, $form ) {
                 <input value="' . rgar($form, 'gformstripcustom_checkout_success_url') . '" name="gformstripcustom_checkout_success_url" type="text">
             </td>
         </tr>';
+
+
+    $settings[ __( 'Stripe Settings', 'gravityforms' ) ]['gformstripcustom_promocode_api_url'] = '
+        <tr>
+           <td>
+                <div class="gform-settings-field__header">
+                    <p>Use this code to replace promocode value, make sure your API is public <code>{promoCodeValue}</code></p>
+                    <label class="gform-settings-label gform-settings-field__header" for="gformstripcustom_promocode_api_url">
+                        Promocode API URL
+                    </label>
+                </div>
+                <input value="' . rgar($form, 'gformstripcustom_promocode_api_url') . '" name="gformstripcustom_promocode_api_url" type="text">
+            </td>
+        </tr>';
  
     return $settings;
 }
@@ -225,7 +239,8 @@ function gformstripecustom_form_setting_save($form) {
         'gformstripcustom_customer_email_field',
         'gformstripcustom_collect_tax_automatically',
         'gformstripcustom_collect_customer_phone_number',
-        'gformstripcustom_allow_promo_code'
+        'gformstripcustom_allow_promo_code',
+        'gformstripcustom_promocode_api_url'
     );
 
     foreach($formsettings as $fs) {

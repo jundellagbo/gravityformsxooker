@@ -33,6 +33,11 @@ add_action( 'rest_api_init', function () {
     'methods' => 'GET',
     'callback' => 'gformxooker_reset_sync',
   ));
+
+  register_rest_route( 'gformxooker/v1', 'customer-portal', array(
+    'methods' => 'GET',
+    'callback' => 'gformxooker_customer_portal',
+  ));
 });
 
 function gformxooker_get_entry_checkout_url( WP_REST_Request $request ) {
@@ -138,9 +143,14 @@ function gformxooker_success_purchase( WP_REST_Request $request ) {
                 'checkouturl' => $res->url,
                 'entry' => $entry,
                 'form' => $form,
-                'session' => $res
+                'session' => $res,
+                'subscriptiondetails' => gformstripecustom_load_subscriptiondetail_template(array(
+                    'form' => $form,
+                    'entry' => $entry
+                ))
             )
         );
+
         GFAPI::send_notifications( $form, $entry, 'gform_xooker_checkout_success', $notification_data);
 
         do_action('gform_xooker_stripe_success_payment', array(
@@ -304,4 +314,35 @@ function gformxooker_get_customer_id_by_email( $email ) {
 
 function gformxooker_reset_sync() {
     update_option('gform_xooker_stripe_product_next_id', null);
+}
+
+function gformxooker_customer_portal( WP_REST_Request $request ) {
+    if(!function_exists('gf_stripe')) {
+        return null;
+    }
+
+    $gfstripe = new GFStripe();
+    $gfstripe->include_stripe_api();
+    \Stripe\Stripe::setApiKey(gf_stripe()->get_secret_api_key());
+    $stripe = new \Stripe\StripeClient(gf_stripe()->get_secret_api_key());
+
+    $customer = $request->get_param( 'customer' );
+    $redirect = $request->get_param( 'redirect' );
+
+    if(!$customer || !$redirect) {
+        return null;
+    }
+
+    try {
+        $customer_portal = $stripe->billingPortal->sessions->create([
+            'customer' => $customer,
+            'return_url' => $redirect,
+        ]);
+        
+        header("HTTP/1.1 301 Moved Permanently");
+        header("Location: " . $customer_portal->url);
+    } catch(\Exception $e) {
+        header("HTTP/1.1 301 Moved Permanently");
+        header("Location: " . home_url());
+    }
 }

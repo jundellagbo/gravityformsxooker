@@ -14,6 +14,8 @@
 
  include( plugin_dir_path( __FILE__ ) . 'gformxooker_functions.php');
 
+ include( plugin_dir_path( __FILE__ ) . 'gformxooker_custom_metaboxes.php');
+
  include( plugin_dir_path( __FILE__ ) . 'gformxooker_form_settings.php');
 
  include( plugin_dir_path( __FILE__ ) . 'gformxooker_rest_api.php');
