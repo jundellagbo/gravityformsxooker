@@ -339,10 +339,10 @@ function gformxooker_customer_portal( WP_REST_Request $request ) {
             'return_url' => $redirect,
         ]);
         
-        header("HTTP/1.1 301 Moved Permanently");
-        header("Location: " . $customer_portal->url);
+        wp_redirect( $customer_portal->url );
+		exit();
     } catch(\Exception $e) {
-        header("HTTP/1.1 301 Moved Permanently");
-        header("Location: " . home_url());
+        wp_redirect( home_url() );
+		exit();
     }
 }
