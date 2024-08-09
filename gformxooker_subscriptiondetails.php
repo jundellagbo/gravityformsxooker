@@ -143,7 +143,10 @@
       
       <tr>
         <td colspan="2" class="no-border">Billing Cycle</td>
-        <td class="no-border"><p><p>Every <?php echo $firstItem['recurring']['interval_count'] > 1 ? $firstItem['recurring']['interval_count']." " : " " ?> <?php echo $firstItem['recurring']['interval_count'] > 1 ? "months" : "month" ?></p></p></td>
+        <td class="no-border">
+          <p>Every <?php echo $firstItem['recurring']['interval_count'] > 1 ? $firstItem['recurring']['interval_count']." " : " " ?> <?php echo $firstItem['recurring']['interval_count'] > 1 ? "months" : "month" ?>
+        </p>
+      </td>
       </tr>
 
       <tr>
@@ -278,7 +281,9 @@
       
       <tr>
         <td colspan="2" class="no-border">Billing Cycle</td>
-        <td class="no-border"><p><p>Every <?php echo $firstItem['recurring']['interval_count'] > 1 ? $firstItem['recurring']['interval_count']." " : " " ?> <?php echo $firstItem['recurring']['interval_count'] > 1 ? "months" : "month" ?></p></p></td>
+        <td class="no-border">
+          <p>Every <?php echo $firstItem['recurring']['interval_count'] > 1 ? $firstItem['recurring']['interval_count']." " : " " ?> <?php echo $firstItem['recurring']['interval_count'] > 1 ? "months" : "month" ?></p>
+      </td>
       </tr>
       
       <?php if( $promoCode ): ?>
