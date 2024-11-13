@@ -12,12 +12,18 @@
  *
  */
 
- include( plugin_dir_path( __FILE__ ) . 'gformxooker_functions.php');
+ require_once plugin_dir_path( __FILE__ ) . 'vendor/autoload.php';
 
- include( plugin_dir_path( __FILE__ ) . 'gformxooker_custom_metaboxes.php');
+ require_once plugin_dir_path( __FILE__ ) . 'FSD_Data_Encryption.php';
 
- include( plugin_dir_path( __FILE__ ) . 'gformxooker_form_settings.php');
+ require_once  plugin_dir_path( __FILE__ ) . 'gformxooker_functions.php';
 
- include( plugin_dir_path( __FILE__ ) . 'gformxooker_rest_api.php');
+ require_once plugin_dir_path( __FILE__ ) . 'gformxooker_custom_metaboxes.php';
 
- include( plugin_dir_path( __FILE__ ) . 'gformxooker_stripe_products.php');
+ require_once plugin_dir_path( __FILE__ ) . 'gformxooker_form_settings.php';
+
+ require_once plugin_dir_path( __FILE__ ) . 'gformxooker_rest_api.php';
+
+ require_once plugin_dir_path( __FILE__ ) . 'gformxooker_stripe_products.php';
+
+ require_once plugin_dir_path( __FILE__ ) . 'gformxooker_posttypes.php';

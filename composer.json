@@ -1,0 +1,6 @@
+{
+    "name": "jundell/gravityformsxooker-main",
+    "require": {
+        "stripe/stripe-php": "^16.2"
+    }
+}

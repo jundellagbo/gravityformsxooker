@@ -14,9 +14,13 @@ function gformxooker_product_posttype() {
             'public' => true,
             'has_archive' => true,
             'rewrite' => array('slug' => 'gform_stripe_product'),
-            'show_in_rest' => true,
+            'show_in_rest' => false,
             'exclude_from_search' => true,
             'map_meta_cap' => true,
+            'supports' => array(
+                'custom-fields',
+                'title'
+            )
         )
     );
 }
