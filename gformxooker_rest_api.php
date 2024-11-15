@@ -205,26 +205,34 @@ function gformxooker_checkout_canceled( WP_REST_Request $request ) {
 
 
 function gformxooker_products_to_posts( WP_REST_Request $request ) {
-    if(!function_exists('gf_stripe')) {
+
+    $posttype = $request->get_param( 'post_type' );
+    if(!$posttype || !str_contains( $posttype, 'gfs_prods_' )) {
         return null;
     }
 
-    $gfstripe = new GFStripe();
-    $gfstripe->include_stripe_api();
+    $getStripeAccountPostId = explode("_", $posttype);
+    $postAccId = (int) end($getStripeAccountPostId);
+    $stripeKey = get_post_meta( $postAccId, '_gformxooker_stripe_account_key', true );
+    if(!$stripeKey) {
+        return null;
+    }
 
-    \Stripe\Stripe::setApiKey(gf_stripe()->get_secret_api_key());
-    $stripe = new \Stripe\StripeClient(gf_stripe()->get_secret_api_key());
+    $fds = new FSD_Data_Encryption();
+    $stripe = new \Stripe\StripeClient($fds->decrypt( $stripeKey ));
     $apiArgs = array(
         'limit' => 10,
         'expand' => ['data.default_price']
     );
 
-    $nextPage = get_option('gform_xooker_stripe_product_next_id');
+    $nextOption = "gform_xooker_stripe_product_next_id_" . $posttype;
+    $nextPage = get_option($nextOption);
     if($nextPage) {
         $apiArgs['starting_after'] = $nextPage;
     }
 
     $res = $stripe->products->all($apiArgs);
+
     foreach($res['data'] as $product) {
         $price = $product['default_price'];
         if($price) {
@@ -233,7 +241,7 @@ function gformxooker_products_to_posts( WP_REST_Request $request ) {
                 'post_title'   => $productName,
                 'post_content' => $product['description'],
                 'post_status'  => 'publish',
-                'post_type' => 'gform_stripe_product',
+                'post_type' => $posttype,
                 'meta_input' => array(
                     'gform_xooker_api_response' => json_encode($price),
                     'gform_xooker_price_id' => $price['id'],
@@ -247,7 +255,7 @@ function gformxooker_products_to_posts( WP_REST_Request $request ) {
                 )
             );
             // only store those active products.
-            $postID = gformstripecustom_get_post_id_by_metakey_value( 'gform_xooker_product_id', $product['id'] );
+            $postID = gformstripecustom_get_post_id_by_metakey_value( 'gform_xooker_product_id', $product['id'], $posttype );
             if($product['active'] && $price['active']) {
                 if($postID) {
                     $args['ID'] = $postID;
@@ -259,7 +267,7 @@ function gformxooker_products_to_posts( WP_REST_Request $request ) {
         }
     }
 
-    update_option('gform_xooker_stripe_product_next_id', !$res['has_more'] || !count($res['data']) ? "" : $res['data'][count($res['data'])-1]['id'], null);
+    update_option($nextOption, !$res['has_more'] || !count($res['data']) ? "" : $res['data'][count($res['data'])-1]['id'], null);
 
     return $res;
 }
@@ -312,8 +320,15 @@ function gformxooker_get_customer_id_by_email( $email ) {
 }
 
 
-function gformxooker_reset_sync() {
-    update_option('gform_xooker_stripe_product_next_id', null);
+function gformxooker_reset_sync(  WP_REST_Request $request ) {
+    $posttype = $request->get_param( 'post_type' );
+    if(!$posttype || !str_contains( $posttype, 'gfs_prods_' )) {
+        return null;
+    }
+
+    $nextOption = "gform_xooker_stripe_product_next_id_" . $posttype;
+    update_option($nextOption, null);
+    return true;
 }
 
 function gformxooker_customer_portal( WP_REST_Request $request ) {

@@ -20,6 +20,32 @@ function gformstripecustom_form_setting( $settings, $form ) {
         </tr>';
 
 
+    $stripeAccounts = get_posts(array(
+        'numberposts' => -1,
+        'post_type' => 'gfs_accs'
+    ));
+
+    $stripeAccountsOptions = '';
+    $stripeAccountsOptions .= '<option>Select Stripe Account</option>';
+    foreach($stripeAccounts as $gformsacc) {
+        $gformsaccChecked = rgar($form, 'gformstripcustom_stripe_account') === $gformsacc->ID ? "selected" : "";
+        $stripeAccountsOptions .= '<option value="' . $gformsacc->ID . '" ' . $gformsaccChecked . '>' . $gformsacc->post_title . '</option>';
+    }
+
+
+    $settings[ __( 'Stripe Settings', 'gravityforms' ) ]['gformstripcustom_stripe_account'] = '
+        <tr>
+           <td>
+                <div class="gform-settings-field__header">
+                    <label class="gform-settings-label gform-settings-field__header" for="gformstripcustom_stripe_account">
+                        Choose Stripe Account
+                    </label>
+                </div>
+                <select name="gformstripcustom_stripe_account" value="'.rgar($form, 'gformstripcustom_stripe_account').'">' . $stripeAccountsOptions . '</select>
+            </td>
+        </tr>';
+
+
     $settings[ __( 'Stripe Settings', 'gravityforms' ) ]['gformstripcustom_customer_email_field'] = '
         <tr>
            <td>

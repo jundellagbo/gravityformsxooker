@@ -24,6 +24,4 @@
 
  require_once plugin_dir_path( __FILE__ ) . 'gformxooker_rest_api.php';
 
- require_once plugin_dir_path( __FILE__ ) . 'gformxooker_stripe_products.php';
-
  require_once plugin_dir_path( __FILE__ ) . 'gformxooker_posttypes.php';
