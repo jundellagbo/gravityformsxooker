@@ -42,13 +42,6 @@ add_action( 'rest_api_init', function () {
 
 function gformxooker_get_entry_checkout_url( WP_REST_Request $request ) {
 
-    if(!function_exists('gf_stripe')) {
-        return;
-    }
-
-    $gfstripe = new GFStripe();
-    $gfstripe->include_stripe_api();
-
     $entry = GFAPI::get_entry($request->get_param( 'entryId' ));
     if(is_wp_error($entry)) {
         return false;
@@ -70,10 +63,6 @@ function gformxooker_get_entry_checkout_url( WP_REST_Request $request ) {
 
 function gformxooker_success_purchase( WP_REST_Request $request ) {
 
-    if(!function_exists('gf_stripe') || !gformstripecustom_secret_api()) {
-        return;
-    }
-
     try {
 
         $entryid = $request->get_param( 'entryId' );
@@ -82,16 +71,13 @@ function gformxooker_success_purchase( WP_REST_Request $request ) {
         // ignore bottom code if missing entry and sessionId from checkout
         if(!$entryid || !$sessionId) { return false; }
 
-        $gfstripe = new GFStripe();
-        $gfstripe->include_stripe_api();
-
         $entry = GFAPI::get_entry($entryid);
         if(is_wp_error($entry)) {
             return false;
         }
         
         // nothing to do if there is transaction or subscription
-        if(gformstripecustom_has_transaction($entry) || gformstripecustom_has_subscription($entry)) {
+        if(gform_update_meta( $entry['id'], 'ezhire_entry_is_checkout_success', true )) {
             return false;
         }
 
@@ -99,44 +85,21 @@ function gformxooker_success_purchase( WP_REST_Request $request ) {
         $formId = $entry['form_id'];
         $form = GFAPI::get_form($formId);
 
-        $gfstripe = new GFStripe();
-        $gfstripe->include_stripe_api();
+        $stripe = gformxooker_stripe_entry( $entry['id'] );
+        $res = $stripe->checkout->sessions->retrieve($sessionId, []);
 
-        \Stripe\Stripe::setApiKey( gformstripecustom_secret_api() );
-        $res = \Stripe\Checkout\Session::retrieve($sessionId,[]);
-        $paymentMode = rgar($form, 'gformstripcustom_payment_mode');
-        if($paymentMode === "subscription") {
-            // subscription here.
-            $subscription = array(
-                'subscription_id' => $res->subscription,
-                'amount' => gformstripecustom_money_get( $res->amount_total ),
-                'amount_formatted' =>  GFCommon::to_money( gformstripecustom_money_get( $res->amount_total ), strtoupper($res->currency) ),
-                'entry_id' => $entryid
-            );
-            $gfstripe->start_subscription( $entry, $subscription );
-            gform_update_meta( $entry['id'], 'payment_element_subscription_id', $res->subscription );
-            gform_update_meta( $entry['id'], 'stripe_session_id', $sessionId );
-            gform_update_meta( $entry['id'], 'stripe_customer_id', $res->customer );
-            gform_update_meta( $entry['id'], 'payment_gateway', "gravityformsstripe" );
-        } else {
-            // transaction here.
-            $transaction = array(
-                'transaction_id' => $res->payment_intent,
-                'amount' => gformstripecustom_money_get( $res->amount_total ),
-                'amount_formatted' =>  GFCommon::to_money( gformstripecustom_money_get( $res->amount_total ), strtoupper($res->currency) ),
-                'entry_id' => $entryid
-            );
-            $gfstripe->complete_payment( $entry, $transaction );
-            gform_update_meta( $entry['id'], 'payment_element_intent_id', $res->payment_intent );
-            gform_update_meta( $entry['id'], 'stripe_session_id', $sessionId );
-            gform_update_meta( $entry['id'], 'stripe_customer_id', $res->customer );
-            gform_update_meta( $entry['id'], 'payment_gateway', "gravityformsstripe" );
-        }
-
+        gform_update_meta( $entry['id'], 'payment_element_subscription_id', $res->subscription );
         gform_delete_meta( $entry['id'], 'ezhire_entry_checkout_url' );
         gform_update_meta( $entry['id'], 'ezhire_entry_is_checkout_success', 1 );
-
         gform_update_meta( $entry['id'], 'gformxooker_stripe_checkout_process', 'finish' );
+        GFAPI::add_note( 
+			$entry['id'], 
+			0, 
+			'Payment Status', 
+			__( 'Payment has been made.', 'gformxooker' ), 
+			'gformxooker_payment_status', 
+			'success' 
+		);
         
         $notification_data = array(
             'gformxooker' => array(
@@ -175,15 +138,17 @@ function gformxooker_checkout_canceled( WP_REST_Request $request ) {
     $entryid = $request->get_param( 'entryId' );
     $sessionId = $request->get_param( 'sessionId' );
 
+    if(gform_update_meta( $entryid, 'ezhire_entry_is_checkout_canceled', true )) {
+        return false;
+    }
+
     $entry = GFAPI::get_entry($entryid);
     $formId = $entry['form_id'];
     $form = GFAPI::get_form($formId);
-    
-    $gfstripe = new GFStripe();
-    $gfstripe->include_stripe_api();
 
-    \Stripe\Stripe::setApiKey( gformstripecustom_secret_api() );
-    $res = \Stripe\Checkout\Session::retrieve($sessionId,[]);
+    $stripe = gformxooker_stripe_entry( $entryid );
+    if(!$stripe) { return false; }
+    $res = $stripe->checkout->sessions->retrieve( $sessionId, [] );
     
     $notification_data = array(
         'gformxooker' => array(
@@ -193,7 +158,17 @@ function gformxooker_checkout_canceled( WP_REST_Request $request ) {
             'session' => $res
         )
     );
+
+    gform_update_meta( $entryid, 'ezhire_entry_is_checkout_canceled', 1 );
     GFAPI::send_notifications( $form, $entry, 'gform_xooker_checkout_canceled', $notification_data);
+    GFAPI::add_note( 
+        $entryid, 
+        0, 
+        'Payment Status', 
+        __( 'Payment has been canceled.', 'gformxooker' ), 
+        'gformxooker_payment_status', 
+        'error' 
+    );
 
     do_action('gform_xooker_stripe_cancel_payment', array(
         'entry' => $entryid,
@@ -211,15 +186,10 @@ function gformxooker_products_to_posts( WP_REST_Request $request ) {
         return null;
     }
 
-    $getStripeAccountPostId = explode("_", $posttype);
-    $postAccId = (int) end($getStripeAccountPostId);
-    $stripeKey = get_post_meta( $postAccId, '_gformxooker_stripe_account_key', true );
-    if(!$stripeKey) {
+    $stripe = gformxooker_get_stripe_api( $posttype );
+    if(!$stripe) {
         return null;
     }
-
-    $fds = new FSD_Data_Encryption();
-    $stripe = new \Stripe\StripeClient($fds->decrypt( $stripeKey ));
     $apiArgs = array(
         'limit' => 10,
         'expand' => ['data.default_price']
@@ -306,11 +276,11 @@ function gformxooker_process_payment( WP_REST_Request $request ) {
 }
 
 
-function gformxooker_get_customer_id_by_email( $email ) {
-    $gfstripe = new GFStripe();
-    $gfstripe->include_stripe_api();
-    \Stripe\Stripe::setApiKey(gf_stripe()->get_secret_api_key());
-    $stripe = new \Stripe\StripeClient(gf_stripe()->get_secret_api_key());
+function gformxooker_get_customer_id_by_email( $email, $entry ) {
+    $stripe = gformxooker_stripe_entry( $entry['id'] );
+    if(!$stripe) { return null; }
+    
+
     $apiArgs = array(
         'limit' => 1,
         'email' => $email
@@ -332,21 +302,18 @@ function gformxooker_reset_sync(  WP_REST_Request $request ) {
 }
 
 function gformxooker_customer_portal( WP_REST_Request $request ) {
-    if(!function_exists('gf_stripe')) {
-        return null;
-    }
-
-    $gfstripe = new GFStripe();
-    $gfstripe->include_stripe_api();
-    \Stripe\Stripe::setApiKey(gf_stripe()->get_secret_api_key());
-    $stripe = new \Stripe\StripeClient(gf_stripe()->get_secret_api_key());
 
     $customer = $request->get_param( 'customer' );
     $redirect = $request->get_param( 'redirect' );
+    $entryId = $request->get_param( 'entryId' );
 
-    if(!$customer || !$redirect) {
+    $stripe = gformxooker_stripe_entry( $entryId );
+
+    if(!$customer || !$redirect || !$redirect || !$stripe) {
         return null;
     }
+
+
 
     try {
         $customer_portal = $stripe->billingPortal->sessions->create([

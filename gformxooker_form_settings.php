@@ -28,7 +28,7 @@ function gformstripecustom_form_setting( $settings, $form ) {
     $stripeAccountsOptions = '';
     $stripeAccountsOptions .= '<option>Select Stripe Account</option>';
     foreach($stripeAccounts as $gformsacc) {
-        $gformsaccChecked = rgar($form, 'gformstripcustom_stripe_account') === $gformsacc->ID ? "selected" : "";
+        $gformsaccChecked = rgar($form, 'gformstripcustom_stripe_account') == $gformsacc->ID ? "selected" : "";
         $stripeAccountsOptions .= '<option value="' . $gformsacc->ID . '" ' . $gformsaccChecked . '>' . $gformsacc->post_title . '</option>';
     }
 
@@ -255,6 +255,7 @@ add_filter( 'gform_pre_form_settings_save', 'gformstripecustom_form_setting_save
 function gformstripecustom_form_setting_save($form) {
     $formsettings = array(
         'gformstripcustom_direct_checkout',
+        'gformstripcustom_stripe_account',
         'gformstripcustom_product_field_ids',
         'gformstripcustom_payment_mode',
         'gformstripcustom_cancel_url',

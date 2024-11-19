@@ -58,48 +58,24 @@
 
  function gformstripecustom_post_product_handler_setter( $post_id ) {
     $product = array();
-    if(get_post_meta($post_id, 'gform_xooker_price_id', true )) {
+    $priceId = get_post_meta($post_id, 'gform_xooker_price_id', true );
+    if($priceId) {
         $product = array(
             'price' => get_post_meta($post_id, 'gform_xooker_price_id', true ),
             'quantity' => 1
         );
-    } else {
-        $interval = get_field( 'gform_addon_custom_recurring_interval', $post_id );
-        $interval_count = get_field( 'gform_addon_custom_recurring_interval_count', $post_id );
-        $amount = gformstripecustom_money_set(get_field( 'gform_addon_custom_price', $post_id ));
-        $product = array(
-            'price_data' => array(
-                'currency' => strtolower(get_field( 'gform_addon_custom_currency', $post_id )),
-                'unit_amount' => $amount,
-                'product_data' => array(
-                    'name' => get_field( 'gform_addon_custom_item', $post_id )
-                )
-            ),
-            'quantity' => 1
-        );
-
-        if(get_field( 'gform_addon_custom_description', $post_id )) {
-            $product['price_data']['product_data']['description'] = get_field( 'gform_addon_custom_description', $post_id );
-        }
-
-        if($interval && $interval_count) {
-            $product['price_data']['recurring'] = array(
-                'interval_count' => $interval_count,
-                'interval' => $interval
-            );
-        }
     }
     return $product;
  }
 
+
+
+ // last changes
 function gformstripecustom_after_submit_getstarted( $entry, $form ) {
     // If the GForm stripe custom addon is empty then submit the form as a normal state which is return;.
     if(!function_exists('gf_stripe')) {
         return;
     }
-
-    $gfstripe = new GFStripe();
-    $gfstripe->include_stripe_api();
 
     // Getting secret API from GForm Stripe Add-On
     $isAllowedRedirect = rgar($form, 'gformstripcustom_direct_checkout');
@@ -115,7 +91,9 @@ function gformstripecustom_after_submit_getstarted( $entry, $form ) {
     $isEnabledTaxAutomatic = rgar($form, 'gformstripcustom_collect_tax_automatically');
     $phoneCollection = rgar($form, 'gformstripcustom_collect_customer_phone_number');
     $allowPromocode = rgar($form, 'gformstripcustom_allow_promo_code');
-
+    $stripe = gformxooker_stripe_entry( $entry['id'] );
+    $stripeacc = rgar( $form, 'gformstripcustom_stripe_account' );
+    
     if(!rgar($entry, $customerEmail)) {
         return;
     }
@@ -128,26 +106,25 @@ function gformstripecustom_after_submit_getstarted( $entry, $form ) {
         !$successUrl ||
         !$customerEmail ||
         !$productFieldId ||
-        !rgar($entry, $productFieldId)
+        !rgar($entry, $productFieldId) ||
+        !$stripe
     ) {
         return;
     }
 
     $theProduct = rgar($entry, $productFieldId);
-    $theProductExtract = explode("|", $theProduct);
-    array_pop($theProductExtract);
-    $theProductValue = implode("|", $theProductExtract);
-
     $productsArray = array();
-    $post_id = gformstripecustom_get_post_id_by_metakey_value( 'gform_acf_addon_product_value_form', $theProduct );
+    $post_id = gformstripecustom_get_post_id_by_metakey_value( 'gformxooker_product_value', $theProduct, gformxooker_account_post($stripeacc) );
+
     if(!$post_id) { return; }
     $productsArray[] = gformstripecustom_post_product_handler_setter( $post_id );
 
-    // addons handling
-    $productAddons = get_field( 'gform_acf_addon_products', $post_id );
-    $productAddons = $productAddons && count($productAddons) ? $productAddons : [];
-    foreach($productAddons as $addon) {
-        $productsArray[] = gformstripecustom_post_product_handler_setter( $addon->ID );
+    $stripeaddons = get_post_meta( $post_id, 'gformxooker_product_addons', true );
+    $stripeaddons = explode(",", str_replace(" ", "", $stripeaddons));
+    foreach($stripeaddons as $addon) {
+        if($addon) {
+            $productsArray[] = gformstripecustom_post_product_handler_setter( $addon );
+        }
     }
 
     if(!count($productsArray)) {
@@ -189,16 +166,14 @@ function gformstripecustom_after_submit_getstarted( $entry, $form ) {
     }
 
     // getting your customer id by your email address for unique transaction of customer
-    $customerId = gformxooker_get_customer_id_by_email( rgar($entry, $customerEmail) );
+    $customerId = gformxooker_get_customer_id_by_email( rgar($entry, $customerEmail), $entry );
     if(!$customerId) {
         $stripeParams['customer_email'] = rgar($entry, $customerEmail);
     } else {
         $stripeParams['customer'] = $customerId;
     }
 
-    // Stripe Checkout Session starts here.
-    \Stripe\Stripe::setApiKey( gformstripecustom_secret_api() );
-    $res = \Stripe\Checkout\Session::create($stripeParams);
+    $res = $stripe->checkout->sessions->create( $stripeParams );
     gform_update_meta( $entry['id'], 'ezhire_entry_checkout_url', $res->url );
     $entrySuccessURL = gformxooker_url_assigner($entry, $redirectUrl);
     gform_update_meta( $entry['id'], 'ezhire_entry_success_url', $entrySuccessURL );
@@ -303,4 +278,33 @@ function gformxooker_scheduled_partial_email_exec() {
     }
 
     return true;
+}
+
+
+
+function gformxooker_get_stripe_api( $posttype ) {
+    // gfs_prods_{id}
+    $getStripeAccountPostId = explode("_", $posttype);
+    $postAccId = (int) end($getStripeAccountPostId);
+    $stripeKey = get_post_meta( $postAccId, '_gformxooker_stripe_account_key', true );
+    if(!$stripeKey) {
+        return null;
+    }
+    $fds = new FSD_Data_Encryption();
+    $stripe = new \Stripe\StripeClient($fds->decrypt( $stripeKey ));
+    return $stripe;
+}
+
+function gformxooker_account_post( $id ) {
+    // gfs_prods_{id}
+    return "gfs_prods_$id";
+}
+
+function gformxooker_stripe_entry( $entryId ) {
+    $entry = GFAPI::get_entry( $entryId );
+    $formId = $entry['form_id'];
+    $form = GFAPI::get_form($formId);
+    $stripeacc = rgar( $form, 'gformstripcustom_stripe_account' );
+    $stripe = gformxooker_get_stripe_api( gformxooker_account_post( $stripeacc ));
+    return $stripe;
 }

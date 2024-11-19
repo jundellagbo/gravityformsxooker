@@ -30,7 +30,8 @@ function gformxooker_stripe_account_posttype() {
   ));
 
   foreach($posts as $post) {
-    register_post_type( 'gfs_prods_' . $post->ID,
+    $productPostType = 'gfs_prods_' . $post->ID;
+    register_post_type( $productPostType,
       array(
         'labels' => array(
             'name' => __( $post->post_title . ' Products' ),
@@ -38,7 +39,7 @@ function gformxooker_stripe_account_posttype() {
         ),
         'public' => true,
         'has_archive' => true,
-        'rewrite' => array('slug' => 'gfs_prods_' . $post->ID),
+        'rewrite' => array('slug' => $productPostType),
         'show_in_rest' => false,
         'exclude_from_search' => true,
         'map_meta_cap' => true,
@@ -50,6 +51,7 @@ function gformxooker_stripe_account_posttype() {
       )
     );
   }
+
 }
 
 // Hooking up our function to theme setup
@@ -66,7 +68,63 @@ function gformxooker_stripe_acc_meta_box() {
     "normal",
     "high"
   );
+
+  $posts = get_posts(array(
+    'numberposts' => -1,
+    'post_type' => 'gfs_accs'
+  ));
+
+  foreach($posts as $post) {
+    $productPostType = 'gfs_prods_' . $post->ID;
+    add_meta_box(
+      $productPostType . "_metadata",
+      "Form Setup",
+      "gformxooker_product_metabox",
+      $productPostType,
+      "normal",
+      "high"
+    );
+  }
 }
+
+function gformxooker_product_metabox() {
+  global $post, $current_screen;
+
+  $addons = get_posts(array(
+    'numberposts' => -1,
+    'post_type' => $current_screen->post_type
+  ));
+
+  $addonvalue = get_post_meta($post->ID, "gformxooker_product_addons", true);
+
+  $addonOptions = '';
+  $addonOptions .= '<option>Choose product addon</option>';
+  foreach($addons as $addn) {
+      $gformsaccChecked = $addonvalue == $addn->ID ? "selected" : "";
+      $addonOptions .= '<option value="' . $addn->ID . '" ' . $gformsaccChecked . '>' . $addn->post_title . '</option>';
+  }
+  echo "<p>Product ADDON</p>";
+  echo '<select name="gformxooker_product_addons" value="'.$addonvalue.'">' . $addonOptions . '</select>';
+
+  $value = get_post_meta($post->ID, "gformxooker_product_value", true);
+  echo "<p>ProductF Form value</p>";
+  echo "<input type=\"text\" name=\"gformxooker_product_value\" value=\"" . $value . "\" style=\"width: 100%;\" />";
+}
+
+
+function gformxooker_products_save_post() {
+  global $post;
+  if(!str_contains( $post->post_type, 'gfs_prods_' )) {
+    return;
+  }
+  if( defined( 'DOING_AUTOSAVE') && DOING_AUTOSAVE ) {
+    return;
+  }
+
+  update_post_meta( $post->ID, "gformxooker_product_addons",  $_POST['gformxooker_product_addons']);
+  update_post_meta( $post->ID, "gformxooker_product_value",  $_POST['gformxooker_product_value']);
+}
+add_action( 'save_post', 'gformxooker_products_save_post' );
 
 
 function gformxooker_stripe_acc_box() {
@@ -101,7 +159,7 @@ function gformxooker_product_list_columns( $columns, $post_type ) {
   $columns['gformxooker_stripe_price_id'] = 'Stripe Price ID';
   $columns['gformxooker_stripe_pricing'] = 'Pricing';
   $columns['gformxooker_stripe_value_used'] = 'Value Using';
-  $columns['gformxooker_stripe_addons'] = 'Addons';
+  $columns['gformxooker_stripe_addons'] = 'Addon';
   unset($columns['date']);
   return $columns;
 }
@@ -112,60 +170,48 @@ function gformxooker_action_custom_columns_content ( $column_id, $post_id ) {
     //run a switch statement for all of the custom columns created
     switch( $column_id ) { 
         case 'gformxooker_stripe_product_id':
-            echo $post_id;
+          echo $post_id;
         break;
 
         case 'gformxooker_stripe_price_id':
-            $price = get_post_meta($post_id, 'gform_xooker_price_id', true );
-            if($price) {
-                echo '<p>' . get_post_field('post_content', $post_id) . '</p>';
-                echo '<code>' . $price . '</code>';
-            } else {
-                echo '<p>' . get_field( 'gform_addon_custom_description', $post_id ) . '</p>';
-                echo '<code>Custom pricing</code>';
-            }
+          $price = get_post_meta($post_id, 'gform_xooker_price_id', true );
+          if($price) {
+            echo '<p>' . get_post_field('post_content', $post_id) . '</p>';
+            echo '<code>' . $price . '</code>';
+          }
         break;
 
         case 'gformxooker_stripe_pricing':
-            if(!empty(get_post_meta($post_id, 'gform_xooker_price_id', true ))) {
-                $interval = get_post_meta($post_id, 'gform_xooker_price_recurring_interval', true );
-                $interval_count = get_post_meta($post_id, 'gform_xooker_price_recurring_interval_count', true );
-                $amount = get_post_meta($post_id, 'gform_xooker_price_amount', true );
+          if(!empty(get_post_meta($post_id, 'gform_xooker_price_id', true ))) {
+            $interval = get_post_meta($post_id, 'gform_xooker_price_recurring_interval', true );
+            $interval_count = get_post_meta($post_id, 'gform_xooker_price_recurring_interval_count', true );
+            $amount = get_post_meta($post_id, 'gform_xooker_price_amount', true );
 
-                $intervallabel = $interval_count < 2 ? 'per' : 'every ' . $interval_count;
-                $intervalsuffix = str_contains($intervallabel, 'every') ? 's' : '';
-                echo '<p>' . gformstripecustom_money_get_format($amount) . ' ' . strtoupper( (string) get_post_meta( $post_id, 'gform_xooker_price_currency', true ) ) . '</p>';
-                if($interval) {
-                    echo '<p>' . $intervallabel . ' ' . $interval . $intervalsuffix. '</p>';
-                }
+            $intervallabel = $interval_count < 2 ? 'per' : 'every ' . $interval_count;
+            $intervalsuffix = str_contains($intervallabel, 'every') ? 's' : '';
+            echo '<p>' . gformstripecustom_money_get_format($amount) . ' ' . strtoupper( (string) get_post_meta( $post_id, 'gform_xooker_price_currency', true ) ) . '</p>';
+            if($interval) {
+              echo '<p>' . $intervallabel . ' ' . $interval . $intervalsuffix. '</p>';
             }
-
-            if(empty(get_post_meta($post_id, 'gform_xooker_price_id', true ))) {
-                $interval = get_field( 'gform_addon_custom_recurring_interval', $post_id );
-                $interval_count = get_field( 'gform_addon_custom_recurring_interval_count', $post_id );
-                $amount = gformstripecustom_money_set(get_field( 'gform_addon_custom_price', $post_id ));
-                $intervallabel = $interval_count < 2 ? 'per' : 'every ' . $interval_count;
-                $intervalsuffix = str_contains($intervallabel, 'every') ? 's' : '';
-                echo '<p>' . gformstripecustom_money_get_format($amount) . ' ' . strtoupper( (string) get_post_meta( $post_id, 'gform_addon_custom_currency', true ) ) . '</p>';
-                if($interval) {
-                    echo '<p>' . $intervallabel . ' ' . $interval . $intervalsuffix. '</p>';
-                }
-            }
+          }
         break;
 
         case 'gformxooker_stripe_addons':
-            $stripeaddons = get_field( 'gform_acf_addon_products', $post_id );
-            $stripeaddonsArr = $stripeaddons && count($stripeaddons) ? $stripeaddons : [];
-            foreach($stripeaddonsArr as $addon) {
-                echo '<code style="margin-right:5px;display:block">' . $addon->post_title . '</code>';
+          $stripeaddons = get_post_meta( $post_id, 'gformxooker_product_addons', true );
+          $stripeaddons = explode(",", str_replace(" ", "", $stripeaddons));
+          foreach($stripeaddons as $addon) {
+            if($addon) {
+              $addon = get_post( (int) $addon );
+              echo '<code style="margin:10px;display:block">' . $addon->post_title . '</code>';
             }
+          }
         break;
 
         case 'gformxooker_stripe_value_used':
-            $gformvalueused = get_field( 'gform_acf_addon_product_value_form', $post_id );
-            if($gformvalueused) {
-                echo '<span class="e-button" style="user-select: all;">' . $gformvalueused . '</span>';
-            }
+          $gformvalueused = get_post_meta( $post_id, 'gformxooker_product_value', true );
+          if($gformvalueused) {
+            echo '<span class="e-button" style="user-select: all;">' . $gformvalueused . '</span>';
+          }
         break;
    }
 }

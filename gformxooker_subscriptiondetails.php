@@ -1,9 +1,11 @@
 <?php
   $subscriptionId = gform_get_meta( $entry['id'], 'payment_element_subscription_id' );
-  $gfstripe = new GFStripe();
-  $gfstripe->include_stripe_api();
-  \Stripe\Stripe::setApiKey(gf_stripe()->get_secret_api_key());
-  $stripe = new \Stripe\StripeClient(gf_stripe()->get_secret_api_key());
+  $stripe = gformxooker_stripe_entry( $entry['id'] );
+  if(!$stripe) {
+    echo '<p style="text-align: center;">Stripe account not configured.</p>';
+    return false; 
+  }
+
   $subscription = $stripe->subscriptions->retrieve($subscriptionId, [
     'expand' => [
       'customer',
@@ -179,7 +181,7 @@
       </tr>
       <?php endif; ?>
 
-      <?php if($invoice['total_discount_amounts'][0]['amount']): ?>
+      <?php if(isset( $invoice['total_discount_amounts'][0]['amount'] )): ?>
       <tr>
         <td colspan="2" class="no-border">Discount</td>
         <td class="no-border"><p>-<?php echo GFCommon::to_money( gformstripecustom_money_get( $invoice['total_discount_amounts'][0]['amount'] ), strtoupper($invoice['currency']) ); ?></p></td>
@@ -198,7 +200,7 @@
   <table style="margin-top: 10px;">
     <tr>
       <td>
-        <a href="<?php echo get_rest_url(); ?>gformxooker/v1/customer-portal?customer=<?php echo $customerId; ?>&redirect=<?php echo home_url(); ?>" target="_blank" class="button" style="margin-right:5px;">Manage Subscription</a>
+        <a href="<?php echo get_rest_url(); ?>gformxooker/v1/customer-portal?customer=<?php echo $customerId; ?>&entryId=<?php echo $entry['id']; ?>&redirect=<?php echo home_url(); ?>" target="_blank" class="button" style="margin-right:5px;">Manage Subscription</a>
         <a href="<?php echo $invoice['hosted_invoice_url']; ?>" target="_blank" class="button">View Invoice</a>
       </td>
     </tr>
@@ -309,7 +311,7 @@
         <td class="no-border"><p><?php echo GFCommon::to_money( gformstripecustom_money_get( $upcomingInvoice['subtotal'] ), strtoupper($upcomingInvoice['currency']) ); ?></p></td>
       </tr>
 
-      <?php if($upcomingInvoice['total_discount_amounts'][0]['amount']): ?>
+      <?php if(isset( $upcomingInvoice['total_discount_amounts'][0]['amount'] )): ?>
       <tr>
         <td colspan="2" class="no-border">Discount</td>
         <td class="no-border"><p>-<?php echo GFCommon::to_money( gformstripecustom_money_get( $upcomingInvoice['total_discount_amounts'][0]['amount'] ), strtoupper($upcomingInvoice['currency']) ); ?></p></td>
