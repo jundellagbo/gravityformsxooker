@@ -114,7 +114,7 @@ function gformxooker_product_metabox() {
 
 function gformxooker_products_save_post() {
   global $post;
-  if(!str_contains( $post->post_type, 'gfs_prods_' )) {
+  if(!isset($post->post_type) || !str_contains( $post->post_type, 'gfs_prods_' )) {
     return;
   }
   if( defined( 'DOING_AUTOSAVE') && DOING_AUTOSAVE ) {
@@ -136,7 +136,7 @@ function gformxooker_stripe_acc_box() {
 
 function gformxooker_stripe_acc_save_post() {
   global $post;
-  if($post->post_type !== "gfs_accs") {
+  if(!isset($post->post_type) || $post->post_type != "gfs_accs") {
     return;
   }
   if( defined( 'DOING_AUTOSAVE') && DOING_AUTOSAVE ) {

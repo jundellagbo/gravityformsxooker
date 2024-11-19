@@ -35,10 +35,6 @@
     return false;
  }
 
- function gformstripecustom_secret_api() {
-    return gf_stripe()->get_secret_api_key();
- }
-
  function gformstripecustom_get_post_id_by_metakey_value( $metakey, $metavalue, $posttype="gform_stripe_product" ) {
     $postQuery = get_posts(
         array(
@@ -72,10 +68,6 @@
 
  // last changes
 function gformstripecustom_after_submit_getstarted( $entry, $form ) {
-    // If the GForm stripe custom addon is empty then submit the form as a normal state which is return;.
-    if(!function_exists('gf_stripe')) {
-        return;
-    }
 
     // Getting secret API from GForm Stripe Add-On
     $isAllowedRedirect = rgar($form, 'gformstripcustom_direct_checkout');
@@ -99,7 +91,6 @@ function gformstripecustom_after_submit_getstarted( $entry, $form ) {
     }
 
     if(
-        !gformstripecustom_secret_api() ||
         !$isAllowedRedirect ||
         !$paymentMode ||
         !$cancelUrl ||

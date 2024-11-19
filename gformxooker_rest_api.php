@@ -313,14 +313,12 @@ function gformxooker_customer_portal( WP_REST_Request $request ) {
         return null;
     }
 
-
-
     try {
         $customer_portal = $stripe->billingPortal->sessions->create([
             'customer' => $customer,
             'return_url' => $redirect,
         ]);
-        
+
         wp_redirect( $customer_portal->url );
 		exit();
     } catch(\Exception $e) {
