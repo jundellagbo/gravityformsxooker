@@ -61,12 +61,10 @@ function gformxooker_get_entry_checkout_url( WP_REST_Request $request ) {
     );
 }
 
-function gformxooker_success_purchase( WP_REST_Request $request ) {
+
+function gformxooker_success_purhase_call( $entryid, $sessionId ) {
 
     try {
-
-        $entryid = $request->get_param( 'entryId' );
-        $sessionId = $request->get_param( 'sessionId' );
 
         // ignore bottom code if missing entry and sessionId from checkout
         if(!$entryid || !$sessionId) { return false; }
@@ -75,9 +73,9 @@ function gformxooker_success_purchase( WP_REST_Request $request ) {
         if(is_wp_error($entry)) {
             return false;
         }
-        
+
         // nothing to do if there is transaction or subscription
-        if(gform_update_meta( $entry['id'], 'ezhire_entry_is_checkout_success', true )) {
+        if(gform_get_meta( $entry['id'], 'ezhire_entry_is_checkout_success', true ) == 1) {
             return false;
         }
 
@@ -134,15 +132,17 @@ function gformxooker_success_purchase( WP_REST_Request $request ) {
     }
 }
 
-function gformxooker_checkout_canceled( WP_REST_Request $request ) {
-    $entryid = $request->get_param( 'entryId' );
-    $sessionId = $request->get_param( 'sessionId' );
+function gformxooker_canceled_purchase_call( $entryid, $sessionId ) {
 
-    if(gform_update_meta( $entryid, 'ezhire_entry_is_checkout_canceled', true )) {
+    $entry = GFAPI::get_entry($entryid);
+    if(is_wp_error($entry)) {
         return false;
     }
 
-    $entry = GFAPI::get_entry($entryid);
+    if(gform_get_meta( $entryid, 'ezhire_entry_is_checkout_canceled', true ) == 1) {
+        return false;
+    }
+
     $formId = $entry['form_id'];
     $form = GFAPI::get_form($formId);
 
@@ -176,6 +176,21 @@ function gformxooker_checkout_canceled( WP_REST_Request $request ) {
     ));
 
     return $res->url;
+}
+
+function gformxooker_success_purchase( WP_REST_Request $request ) {
+
+    $entryid = $request->get_param( 'entryId' );
+    $sessionId = $request->get_param( 'sessionId' );
+
+    return gformxooker_success_purhase_call( $entryid, $sessionId );
+}
+
+function gformxooker_checkout_canceled( WP_REST_Request $request ) {
+    $entryid = $request->get_param( 'entryId' );
+    $sessionId = $request->get_param( 'sessionId' );
+
+    return gformxooker_canceled_purchase_call( $entryid, $sessionId );
 }
 
 
@@ -243,7 +258,6 @@ function gformxooker_products_to_posts( WP_REST_Request $request ) {
 }
 
 
-
 function gformxooker_process_payment( WP_REST_Request $request ) {
     
     $entryid = $request->get_param( 'entryId' );
@@ -254,21 +268,10 @@ function gformxooker_process_payment( WP_REST_Request $request ) {
         $redirectUrl = $request->get_param( 'redirect_uri' );
     }
 
-    $args = array(
-        'headers' => array(
-            'Content-Type' => 'application/json',
-            'Accept' => 'application/json'
-        ),
-        'body' => json_encode(array(
-            'entryId' => $entryid,
-            'sessionId' => $sessionId
-        ))
-    );
-
     if($isCanceled) {
-        wp_remote_post(get_rest_url(null, '/gformxooker/v1/gform-entry-checkout-canceled'), $args);
+        gformxooker_canceled_purchase_call( $entryid, $sessionId );
     } else {
-        wp_remote_post(get_rest_url(null, '/gformxooker/v1/gform-entry-checkout-success'), $args);
+        gformxooker_success_purhase_call( $entryid, $sessionId );
     }
 
     wp_redirect(urldecode($redirectUrl));
