@@ -2,6 +2,7 @@
 
 function gformxooker_stripe_account_posttype() {
   
+  // stripe accounts post types
   register_post_type( 'gfs_accs',
     array(
       'labels' => array(
@@ -9,7 +10,8 @@ function gformxooker_stripe_account_posttype() {
           'singular_name' => __( 'Stripe Account' ),
           'add_new_item' => __( 'Add Account' )
       ),
-      'public' => true,
+      'public' => false,
+      'show_ui' => true,
       'has_archive' => true,
       'rewrite' => array('slug' => 'gfs_accs'),
       'show_in_rest' => false,
@@ -24,6 +26,7 @@ function gformxooker_stripe_account_posttype() {
   );
 
 
+  // stripe products post types
   $posts = get_posts(array(
     'numberposts' => -1,
     'post_type' => 'gfs_accs'
@@ -37,7 +40,8 @@ function gformxooker_stripe_account_posttype() {
             'name' => __( $post->post_title . ' Products' ),
             'add_new_item' => __( 'Add Product' )
         ),
-        'public' => true,
+        'public' => false,
+        'show_ui' => true,
         'has_archive' => true,
         'rewrite' => array('slug' => $productPostType),
         'show_in_rest' => false,
@@ -52,6 +56,50 @@ function gformxooker_stripe_account_posttype() {
     );
   }
 
+
+  // pricing grids post types
+  register_post_type( 'gfs_price_grid',
+    array(
+      'labels' => array(
+          'name' => __( 'Pricing Grids' ),
+          'singular_name' => __( 'Pricing Grids' ),
+          'add_new_item' => __( 'Add Grid' )
+      ),
+      'public' => false,
+      'show_ui' => true,
+      'has_archive' => true,
+      'rewrite' => array('slug' => 'gfs_price_grid'),
+      'show_in_rest' => false,
+      'exclude_from_search' => true,
+      'map_meta_cap' => true,
+      'menu_icon' => 'dashicons-database',
+      'supports' => array(
+        'custom-fields',
+        'title',
+        'editor'
+      )
+    )
+  );
+  
+
+  // pricing grids taxonomy
+  register_taxonomy(
+    'gfs_price_gridcat',
+    'gfs_price_grid',
+    array(
+      'public' => false,
+      'show_ui' => true,
+      'hierarchical' => true,
+      'label' => 'Categories',
+      'query_var' => true,
+      'show_in_rest' => true,
+      'rewrite' => array(
+        'slug' => 'price-grid-category',
+        'with_front' => false
+      )
+    )
+  );
+  register_taxonomy_for_object_type( 'gfs_price_gridcat', 'gfs_price_grid' );
 }
 
 // Hooking up our function to theme setup
@@ -60,6 +108,8 @@ add_action( 'init', 'gformxooker_stripe_account_posttype' );
 
 add_action( 'add_meta_boxes', 'gformxooker_stripe_acc_meta_box' );
 function gformxooker_stripe_acc_meta_box() {
+  
+  // stripe account metabox
   add_meta_box(
     "gfs_accs_metadata",
     "Stripe Key",
@@ -69,6 +119,8 @@ function gformxooker_stripe_acc_meta_box() {
     "high"
   );
 
+
+  // stripe products meta box
   $posts = get_posts(array(
     'numberposts' => -1,
     'post_type' => 'gfs_accs'
@@ -85,69 +137,37 @@ function gformxooker_stripe_acc_meta_box() {
       "high"
     );
   }
+
+
+  // pricing grids meta box
+  add_meta_box(
+    "gfs_price_metadata",
+    "Pricing Grid Settings",
+    "gformxooker_pricing_grid_box",
+    "gfs_price_grid",
+    "normal",
+    "high"
+  );
 }
 
 function gformxooker_product_metabox() {
-  global $post, $current_screen;
-
-  $addons = get_posts(array(
-    'numberposts' => -1,
-    'post_type' => $current_screen->post_type
-  ));
-
-  $addonvalue = get_post_meta($post->ID, "gformxooker_product_addons", true);
-
-  $addonOptions = '';
-  $addonOptions .= '<option>Choose product addon</option>';
-  foreach($addons as $addn) {
-      $gformsaccChecked = $addonvalue == $addn->ID ? "selected" : "";
-      $addonOptions .= '<option value="' . $addn->ID . '" ' . $gformsaccChecked . '>' . $addn->post_title . '</option>';
-  }
-  echo "<p>Product ADDON</p>";
-  echo '<select name="gformxooker_product_addons" value="'.$addonvalue.'">' . $addonOptions . '</select>';
-
-  $value = get_post_meta($post->ID, "gformxooker_product_value", true);
-  echo "<p>ProductF Form value</p>";
-  echo "<input type=\"text\" name=\"gformxooker_product_value\" value=\"" . $value . "\" style=\"width: 100%;\" />";
+  ob_start();
+  require_once plugin_dir_path( __FILE__ ) . 'cfields/products.php';
+  echo ob_get_clean();
 }
-
-
-function gformxooker_products_save_post() {
-  global $post;
-  if(!isset($post->post_type) || !str_contains( $post->post_type, 'gfs_prods_' )) {
-    return;
-  }
-  if( defined( 'DOING_AUTOSAVE') && DOING_AUTOSAVE ) {
-    return;
-  }
-
-  update_post_meta( $post->ID, "gformxooker_product_addons",  $_POST['gformxooker_product_addons']);
-  update_post_meta( $post->ID, "gformxooker_product_value",  $_POST['gformxooker_product_value']);
-}
-add_action( 'save_post', 'gformxooker_products_save_post' );
 
 
 function gformxooker_stripe_acc_box() {
-  global $post;
-  $value = get_post_meta($post->ID, "_gformxooker_stripe_account_key", true);
-  echo "<input type=\"password\" name=\"_gformxooker_stripe_account_key\" value=\"" . $value . "\" placeholder=\"Enter stripe account key\" style=\"width: 100%;\" />";
-  echo "<p>Do not copy this, the system will encrypt the value.</p>";
+  ob_start();
+  require_once plugin_dir_path( __FILE__ ) . 'cfields/stripe-account.php';
+  echo ob_get_clean();
 }
 
-function gformxooker_stripe_acc_save_post() {
-  global $post;
-  if(!isset($post->post_type) || $post->post_type != "gfs_accs") {
-    return;
-  }
-  if( defined( 'DOING_AUTOSAVE') && DOING_AUTOSAVE ) {
-    return;
-  }
-  $fds = new FSD_Data_Encryption();
-  $value = $fds->encrypt( sanitize_text_field(  $_POST['_gformxooker_stripe_account_key'] ));
-  update_post_meta( $post->ID, "_gformxooker_stripe_account_key", $value);
+function gformxooker_pricing_grid_box() {
+  ob_start();
+  require_once plugin_dir_path( __FILE__ ) . 'cfields/price-grid.php';
+  echo ob_get_clean();
 }
-add_action( 'save_post', 'gformxooker_stripe_acc_save_post' );
-
 
 
 add_filter( 'manage_posts_columns', 'gformxooker_product_list_columns', 10 , 2 );
