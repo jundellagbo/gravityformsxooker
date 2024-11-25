@@ -29,3 +29,5 @@
  require_once plugin_dir_path( __FILE__ ) . 'gformxooker_posthandler.php';
 
  require_once plugin_dir_path( __FILE__ ) . 'gformxooker_assets.php';
+
+ require_once plugin_dir_path( __FILE__ ) . 'gformxooker_pricegrid.php';

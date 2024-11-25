@@ -54,7 +54,7 @@ if(count($products)):
   <?php $cat_val = get_post_meta($post->ID, "gformxooker_price_cat_val", true); ?>
   <p class="gformxooker_formlabel">Categorize Value</p>
   <input type="text" class="gformxooker_wfull" value="<?php echo $cat_val; ?>" name="gformxooker_price_cat_val" />
-  <p>Can be use as split grid.</p>
+  <p>Can be use as split grid. Format (category|priority) ex: monthly|0</p>
 </div>
 
 

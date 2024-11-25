@@ -7,36 +7,43 @@ add_action( 'rest_api_init', function () {
   register_rest_route( 'gformxooker/v1', '/gform-entry-checkout', array(
     'methods' => 'GET',
     'callback' => 'gformxooker_get_entry_checkout_url',
+    'permission_callback' => "__return_true"
   ));
 
   register_rest_route( 'gformxooker/v1', '/gform-entry-checkout-success', array(
     'methods' => 'POST',
     'callback' => 'gformxooker_success_purchase',
+    'permission_callback' => "__return_true"
   ));
 
   register_rest_route( 'gformxooker/v1', '/gform-entry-checkout-canceled', array(
     'methods' => 'POST',
     'callback' => 'gformxooker_checkout_canceled',
+    'permission_callback' => "__return_true"
   ));
 
   register_rest_route( 'gformxooker/v1', '/gform-products-to-posts', array(
     'methods' => 'GET',
     'callback' => 'gformxooker_products_to_posts',
+    'permission_callback' => "__return_true"
   ));
 
   register_rest_route( 'gformxooker/v1', 'process-payment', array(
     'methods' => 'GET',
     'callback' => 'gformxooker_process_payment',
+    'permission_callback' => "__return_true"
   ));
 
   register_rest_route( 'gformxooker/v1', 'reset-product-sync', array(
     'methods' => 'GET',
     'callback' => 'gformxooker_reset_sync',
+    'permission_callback' => "__return_true"
   ));
 
   register_rest_route( 'gformxooker/v1', 'customer-portal', array(
     'methods' => 'GET',
     'callback' => 'gformxooker_customer_portal',
+    'permission_callback' => "__return_true"
   ));
 });
 

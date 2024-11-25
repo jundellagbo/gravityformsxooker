@@ -15,19 +15,19 @@ jQuery(document).ready( function() {
 		}
 	});
 	
-	var gformXookerProductVal = jQuery('[name="input_24"]:checked').val();
-	if(gformXookerProductVal && gformXookerProductVal.toLowerCase().includes("annual")) {
-		jQuery('.gform_xooker_plan_type_selector[value="annual"]').prop('checked', true);
-		jQuery('.gform_xooker_plans.annual').addClass('active');
-	} else {
-		jQuery('.gform_xooker_plan_type_selector[value="monthly"]').prop('checked', true);
-		jQuery('.gform_xooker_plans.monthly').addClass('active');
-	}
+	// var gformXookerProductVal = jQuery('[name="input_24"]:checked').val();
+	// if(gformXookerProductVal && gformXookerProductVal.toLowerCase().includes("annual")) {
+	// 	jQuery('.gform_xooker_plan_type_selector[value="annual"]').prop('checked', true);
+	// 	jQuery('.gform_xooker_plans.annual').addClass('active');
+	// } else {
+	// 	jQuery('.gform_xooker_plan_type_selector[value="monthly"]').prop('checked', true);
+	// 	jQuery('.gform_xooker_plans.monthly').addClass('active');
+	// }
 	
 	// default select of plan
-	if(gformXookerProductVal) {
-		jQuery(`[data-plan="${gformXookerProductVal}"]`).addClass('active');
-	}
+	// if(gformXookerProductVal) {
+	// 	jQuery(`[data-plan="${gformXookerProductVal}"]`).addClass('active');
+	// }
 	
 	jQuery('.gform_plan_toggle_container input').change( function() {
 		jQuery('.gform_xooker_plans').removeClass('active');

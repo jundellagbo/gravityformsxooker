@@ -176,7 +176,7 @@ margin-bottom: 20px;
 
 .gform_xooker_plans .gform_xooker_price {
 font-weight: 900;
-  font-size: 30px;
+  font-size: 50px;
 }
 .gform_xooker_plans .gform_xooker_desc {
 font-weight: normal;
@@ -240,7 +240,7 @@ font-size: 14px;
 }
 
 .gform_xooker_plans.modulev2 .gform_xooker_price .gform_xooker_recurring {
-  margin-bottom: 5px;
+  margin-bottom: 10px;
 }
 
 .gform_xooker_plans.modulev2 .gform_xooker_price .gform_xooker_price_cur {
@@ -293,6 +293,14 @@ font-size: 14px;
 
 .gform_xooker_plans.modulev2 .gform_xooker_highlight {
   margin-top: 50px;
+}
+
+.gform_xooker_highlight {
+  strong {
+    display: block;
+    font-size: 20px;
+    font-weight: 900;
+  }
 }
 
 .gform_xooker_highlight_price {
@@ -349,9 +357,6 @@ font-size: 14px;
   align-items: center;
   margin-bottom: 20px;
 }
-.gform_xooker_self_managed .gform_xooker_self_managed_item.self_managed_2 {
-  grid-column: span 2/span 2;
-}
 
 @media screen and (max-width: 800px) {
   .gform_xooker_self_managed {
@@ -360,3 +365,7 @@ font-size: 14px;
 }
 
 /* end of self managed */
+
+.gformxooker_capitalize {
+  text-transform: capitalize;
+}
