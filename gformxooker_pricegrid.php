@@ -79,7 +79,7 @@ if( $a['top_content_id']) {
 <?php if( count($priceGrids)): ?>
 <div class="gform_xooler_plans_wrapper">
   <?php $pgridIndex=0; foreach($priceGrids as $key => $opt): ?>
-    <div class="gform_xooker_plans modulev2 <?php echo $key; ?> <?php echo $pgridIndex==0 ? "active" : ""; ?>">
+    <div class="gform_xooker_plans modulev2 <?php echo $key; ?> <?php echo $pgridIndex==0 ? "active" : ""; ?> <?php echo $a['class']; ?>">
       <?php foreach( $opt as $pgrid ): ?>
 
         <?php 
