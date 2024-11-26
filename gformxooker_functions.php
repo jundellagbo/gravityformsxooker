@@ -39,6 +39,7 @@
     $postQuery = get_posts(
         array(
             'post_type' => $posttype,
+            'numberposts' => -1,
             'meta_query' => array(
               array(
                 'key' => $metakey,

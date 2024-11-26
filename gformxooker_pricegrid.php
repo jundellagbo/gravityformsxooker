@@ -19,6 +19,7 @@ if(!$a['category']) {
 
 $posts = get_posts(array(
   'post_type' => 'gfs_price_grid',
+  'numberposts' => -1,
   'tax_query' => array(
     array(
       'taxonomy' => 'gfs_price_gridcat',
@@ -111,13 +112,6 @@ if( $a['top_content_id']) {
               </p>
               
               <div class="gform_xooker_highlight_price gformxooker_shadow">
-                <!-- <p class="gform_xooker_bigtext"><?php echo $pgrid['gformxooker_price_grid_sub_title']; ?></p>
-                <p class="gform_xooker_price">
-                  <span class="gform_xooker_price_cur"><?php echo $pgrid['gformxooker_price_grid_currency']; ?></span>
-                  <?php echo $pgrid['gformxooker_price_price']; ?>/
-                  <span class="gform_xooker_recurring"><?php echo $pgrid['gformxooker_price_recurring']; ?></span>
-                </p> -->
-
                 <div class="gformxooker_subfeat">
                   <?php echo $pgrid['gformxooker_price_subfeat']; ?>
                 </div>
