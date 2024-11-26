@@ -53,7 +53,7 @@ foreach( $posts as $pst ) {
 
 <h3 style="text-align: center">Choose your plan</h3>
 
-<?php if( count( $priceGrids ) ): ?>
+<?php if( count( $priceGrids ) > 1 ): ?>
 <div class="gform_plan_toggle modulev2">
   <div class="gform_plan_toggle_container">
     <div class="tabs">
