@@ -237,6 +237,7 @@ font-size: 14px;
   display: flex;
   align-items: end;
   justify-content: center;
+  height: 60px;
 }
 
 .gform_xooker_plans.modulev2 .gform_xooker_price .gform_xooker_recurring {
@@ -400,4 +401,9 @@ font-size: 14px;
   color: #fff;
   font-weight: 600;
   text-align: center;
+}
+
+.gform_xooker_bigtextv2 {
+  font-size: 30px;
+  font-weight: 900;
 }

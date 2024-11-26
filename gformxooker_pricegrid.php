@@ -100,7 +100,7 @@ if( $a['top_content_id']) {
                 <?php echo $pgrid['gformxooker_price_price']; ?>/
                 <span class="gform_xooker_recurring"><?php echo $pgrid['gformxooker_price_recurring']; ?></span>
               </p>
-              <p class="gform_xooker_desc"><?php echo $pgrid['gformxooker_price_subfeat']; ?></p>
+              <p class="gform_xooker_desc"><?php // echo $pgrid['gformxooker_price_subfeat']; ?></p>
               <div class="gform_xooker_features">
                 <?php echo $pgrid['description']; ?>
               </div>
@@ -111,12 +111,12 @@ if( $a['top_content_id']) {
               </p>
               
               <div class="gform_xooker_highlight_price gformxooker_shadow">
-                <p class="gform_xooker_bigtext"><?php echo $pgrid['gformxooker_price_grid_sub_title']; ?></p>
+                <!-- <p class="gform_xooker_bigtext"><?php echo $pgrid['gformxooker_price_grid_sub_title']; ?></p>
                 <p class="gform_xooker_price">
                   <span class="gform_xooker_price_cur"><?php echo $pgrid['gformxooker_price_grid_currency']; ?></span>
                   <?php echo $pgrid['gformxooker_price_price']; ?>/
                   <span class="gform_xooker_recurring"><?php echo $pgrid['gformxooker_price_recurring']; ?></span>
-                </p>
+                </p> -->
 
                 <div class="gformxooker_subfeat">
                   <?php echo $pgrid['gformxooker_price_subfeat']; ?>
