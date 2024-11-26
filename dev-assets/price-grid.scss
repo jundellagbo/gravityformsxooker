@@ -244,8 +244,8 @@ font-size: 14px;
 }
 
 .gform_xooker_plans.modulev2 .gform_xooker_price .gform_xooker_price_cur {
-  font-size: 16px;
-    margin-bottom: 15px;
+  font-size: 25px;
+  margin-bottom: 25px;
 }
 
 .gform_xooker_plans.modulev2 .gform_xooker_item_details {
@@ -368,4 +368,36 @@ font-size: 14px;
 
 .gformxooker_capitalize {
   text-transform: capitalize;
+}
+
+.gform_xooker_features {
+  margin-top: 15px;
+  margin-bottom: 50px;
+  ul {
+    padding-left: 30px;
+    li {
+      font-size: 16px;
+      font-weight: 700;
+      &.sub {
+        list-style: none;
+
+        ul {
+          padding-left: 15px;
+          li {
+            font-weight: 600;
+            font-size: 14px;
+            list-style: disc;
+          }
+        }
+      }
+    }
+  }
+}
+
+
+.gformxooker_subfeat {
+  font-size: 18px;
+  color: #fff;
+  font-weight: 600;
+  text-align: center;
 }

@@ -101,14 +101,9 @@ if( $a['top_content_id']) {
                 <span class="gform_xooker_recurring"><?php echo $pgrid['gformxooker_price_recurring']; ?></span>
               </p>
               <p class="gform_xooker_desc"><?php echo $pgrid['gformxooker_price_subfeat']; ?></p>
-              <ul class="gform_xooker_features">
-                <?php $descriptions = explode("\n", $pgrid['description']); ?>
-                <?php foreach($descriptions as $ds): ?>
-                  <?php if($ds): ?>
-                    <li><?php echo $ds; ?></li>
-                  <?php endif; ?>
-                <?php endforeach; ?>
-              </ul>
+              <div class="gform_xooker_features">
+                <?php echo $pgrid['description']; ?>
+              </div>
             </div>
             <div>
               <p class="gform_xooker_highlight">
@@ -123,14 +118,9 @@ if( $a['top_content_id']) {
                   <span class="gform_xooker_recurring"><?php echo $pgrid['gformxooker_price_recurring']; ?></span>
                 </p>
 
-                <ul class="gform_xooker_features">
-                <?php $descriptions = explode("\n", $pgrid['gformxooker_price_subfeat']); ?>
-                <?php foreach($descriptions as $ds): ?>
-                  <?php if($ds): ?>
-                    <li><?php echo $ds; ?></li>
-                  <?php endif; ?>
-                <?php endforeach; ?>
-              </ul>
+                <div class="gformxooker_subfeat">
+                  <?php echo $pgrid['gformxooker_price_subfeat']; ?>
+                </div>
               </div>
             </div>
           </div>
