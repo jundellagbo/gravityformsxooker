@@ -190,6 +190,7 @@ function gformxooker_pricegrid_list_columns( $columns, $post_type ) {
   if($post_type != "gfs_price_grid") {
     return $columns;
   }
+  $columns['gformxooker_price_grid_product'] = 'Product';
   $columns['gformxooker_price_grid_cats'] = 'Categories';
   unset($columns['date']);
   return $columns;
@@ -247,8 +248,21 @@ function gformxooker_action_custom_columns_content ( $column_id, $post_id ) {
 
         case 'gformxooker_price_grid_cats':
           $taxms = get_the_terms( $post_id, 'gfs_price_gridcat' );
-          foreach( $taxms as $tax) {
-            echo '<span class="gformxooker_badge">' . $tax->name . '</span>';
+          if($taxms && is_array($taxms)) {
+            foreach( $taxms as $tax) {
+              echo '<span class="gformxooker_badge">' . $tax->name . '</span>';
+            } 
+          }
+        break;
+
+
+        case 'gformxooker_price_grid_product':
+          $prod = get_post_meta( $post_id, 'gformxooker_price_grid_product', true );
+          if($prod) {
+            $productPost = get_post( $prod );
+            if($productPost) {
+              echo $productPost->post_title;
+            }
           }
         break;
    }
