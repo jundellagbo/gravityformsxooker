@@ -3,8 +3,8 @@ jQuery(document).ready( function() {
 		jQuery('.gfxooker-plan-grid').removeClass('active');
 		jQuery(this).addClass('active');
 		
-		jQuery('.gformproduct_dynamic').attr('checked', false);
-		jQuery('.gformproduct_dynamic[value="'+jQuery(this).data('plan')+'"]').attr('checked', true);
+		jQuery('.gformproduct_dynamic input').attr('checked', false);
+		jQuery('.gformproduct_dynamic input[value="'+jQuery(this).data('plan')+'"]').attr('checked', true);
 		
 		var gformXookerPlanLink = jQuery('#gformxooker_plan_link');
 		if(gformXookerPlanLink.length) {
@@ -20,7 +20,7 @@ jQuery(document).ready( function() {
 		}
 	});
 	
-	var gformXookerProductVal = jQuery('.gformproduct_dynamic:checked').val();
+	var gformXookerProductVal = jQuery('.gformproduct_dynamic input:checked').val();
 
 	// default select of plan
 	if(gformXookerProductVal) {
