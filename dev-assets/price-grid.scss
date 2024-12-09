@@ -132,7 +132,7 @@ transition: 0.25s ease-out;
 }
 .gform_xooker_plans .gform_xooker_item {
 display: flex;
-@include crossBrowser(align-items, start);
+@include crossBrowser(align-items, flex-start);
 padding: 20px;
 border-radius: 8px;
 box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
@@ -255,7 +255,7 @@ font-size: 14px;
 .gform_xooker_plans.modulev2 .gform_xooker_price {
   position: relative;
   display: flex;
-  @include crossBrowser(align-items, end);
+  @include crossBrowser(align-items, flex-end);
   @include crossBrowser(justify-content, center);
   height: 60px;
 }
