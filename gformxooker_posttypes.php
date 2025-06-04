@@ -11,7 +11,8 @@ function gformxooker_stripe_account_posttype() {
           'add_new_item' => __( 'Add Account' )
       ),
       'public' => false,
-      'show_ui' => true,
+      'show_ui' => current_user_can('administrator'),
+      'show_in_menu' => current_user_can('administrator'),
       'has_archive' => true,
       'rewrite' => array('slug' => 'gfs_accs'),
       'show_in_rest' => false,
@@ -41,7 +42,8 @@ function gformxooker_stripe_account_posttype() {
             'add_new_item' => __( 'Add Product' )
         ),
         'public' => false,
-        'show_ui' => true,
+        'show_ui' => current_user_can('administrator'),
+        'show_in_menu' => current_user_can('administrator'),
         'has_archive' => true,
         'rewrite' => array('slug' => $productPostType),
         'show_in_rest' => false,
@@ -66,7 +68,8 @@ function gformxooker_stripe_account_posttype() {
           'add_new_item' => __( 'Add Grid' )
       ),
       'public' => false,
-      'show_ui' => true,
+      'show_ui' => current_user_can('administrator'),
+      'show_in_menu' => current_user_can('administrator'),
       'has_archive' => true,
       'rewrite' => array('slug' => 'gfs_price_grid'),
       'show_in_rest' => false,
@@ -88,7 +91,8 @@ function gformxooker_stripe_account_posttype() {
     'gfs_price_grid',
     array(
       'public' => false,
-      'show_ui' => true,
+      'show_ui' => current_user_can('administrator'),
+      'show_in_menu' => current_user_can('administrator'),
       'hierarchical' => true,
       'label' => 'Categories',
       'query_var' => true,
