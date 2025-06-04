@@ -219,6 +219,16 @@
     </tr>
     <tr>
       <td>
+        <p>Email: <a href="mailto:<?php echo $salesRep->email; ?>"><?php echo $salesRep->email; ?></a></p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Phone: <a href="tel:+1<?php echo $salesRep->phone_number; ?>"><?php echo $salesRep->phone_number; ?></a></p>
+      </td>
+    </tr>
+    <tr>
+      <td>
         <p>Promo Code: 
           <strong><?php echo $promoCode; ?></strong> - 
           <?php if(isset($subscription['discount'])): ?>
