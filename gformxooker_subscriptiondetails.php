@@ -245,6 +245,63 @@
   <?php endif; ?>
 
 
+  <?php 
+  $salesRepIso = isset( $salesRep->parent_user ) ? $salesRep->parent_user : null;
+  if( $salesRep && $salesRepIso ):
+  ?>
+  <table style="margin-top: 20px;">
+    <tr>
+      <td>
+        <h4 class="txt-heading-custom" style="margin-top: 20px;">Sales ISO</h4>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Name: <?php echo $salesRepIso->first_name; ?> <?php echo $salesRepIso->last_name; ?></p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Email: <a href="mailto:<?php echo $salesRepIso->email; ?>"><?php echo $salesRepIso->email; ?></a></p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Phone: <a href="tel:+1<?php echo $salesRepIso->phone_number; ?>"><?php echo $salesRepIso->phone_number; ?></a></p>
+      </td>
+    </tr>
+  </table>
+  <?php endif; ?>
+
+
+  <?php 
+  $salesRepCompany = isset( $salesRep->parent_user->parent_user ) ? $salesRep->parent_user->parent_user : null;
+  if( $salesRep && $salesRepCompany ): ?>
+  <table style="margin-top: 20px;">
+    <tr>
+      <td>
+        <h4 class="txt-heading-custom" style="margin-top: 20px;">Company</h4>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Name: <?php echo $salesRepCompany->first_name; ?> <?php echo $salesRepCompany->last_name; ?></p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Email: <a href="mailto:<?php echo $salesRepCompany->email; ?>"><?php echo $salesRepCompany->email; ?></a></p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p>Phone: <a href="tel:+1<?php echo $salesRepCompany->phone_number; ?>"><?php echo $salesRepCompany->phone_number; ?></a></p>
+      </td>
+    </tr>
+  </table>
+  <?php endif; ?>
+
+
   <?php if( $upcomingInvoice ): 
     $upcomingPeriodEnd = strtotime('+' .  $firstItem['recurring']['interval_count'] . ' ' . $firstItem['recurring']['interval'], $upcomingInvoice['next_payment_attempt']);
     ?>
