@@ -21,9 +21,8 @@
 
   $invoice = $subscription['latest_invoice'];
   $firstItem = $subscription['items']['data'][0]['price'];
-  $promoCode = isset($subscription['discount']['promotion_code']['code']) ? $subscription['discount']['promotion_code']['code'] : "";
+  $promoCode = isset($subscription['discount']['coupon']['id']) ? $subscription['discount']['coupon']['id'] : "";
   $customerId = $subscription['customer']['id'];
-
 
   $upcomingInvoice = null;
   try {
@@ -156,12 +155,12 @@
         <td class="no-border"><p><?php echo strtoupper($subscription['status']); ?></p></td>
       </tr>
       
-      <?php if( $promoCode ): ?>
+      <?php if(isset($invoice['discount'])): ?>
       <tr>
         <td colspan="2" class="no-border">Promo Code</td>
         <td class="no-border">
           <p>
-            <strong><?php echo $promoCode; ?></strong> - 
+            <strong><?php echo $invoice['discount']['coupon']['name']; ?></strong> - 
             <?php if(isset($invoice['discount'])): ?>
               <span style="color: #6f6f6f;"> &#40;<?php if( $invoice['discount']['coupon']['amount_off'] ): ?><span><?php echo GFCommon::to_money( gformstripecustom_money_get( $invoice['discount']['coupon']['amount_off'] ), strtoupper($invoice['currency']) ); ?></span>
                 <?php else: ?>
@@ -288,12 +287,12 @@
       </td>
       </tr>
       
-      <?php if( $promoCode ): ?>
+      <?php if( isset( $upcomingInvoice['discount'] ) ): ?>
       <tr>
         <td colspan="2" class="no-border">Promo Code</td>
         <td class="no-border">
           <p>
-            <strong><?php echo $promoCode; ?></strong> - 
+            <strong><?php echo $upcomingInvoice['discount']['coupon']['name']; ?></strong> - 
             <?php if(isset($upcomingInvoice['discount'])): ?>
               <span style="color: #6f6f6f;"> &#40;<?php if( $upcomingInvoice['discount']['coupon']['amount_off'] ): ?><span><?php echo GFCommon::to_money( gformstripecustom_money_get( $upcomingInvoice['discount']['coupon']['amount_off'] ), strtoupper($upcomingInvoice['currency']) ); ?></span>
                 <?php else: ?>
