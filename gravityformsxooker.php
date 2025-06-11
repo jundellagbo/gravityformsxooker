@@ -3,7 +3,7 @@
  * Plugin Name: Gravity Forms Xooker
  * Plugin URI: https://github.com/jundellagbo/gravityformsxooker
  * Description: Extended functionality for Gravity Form from Xooker Team
- * Version: 1.3.1
+ * Version: 1.4.2
  * Author: JJXooker
  * Author URI: mailto:jj@xooker.com
  * License: GPL-2.0+
@@ -13,8 +13,6 @@
  */
 
  require_once plugin_dir_path( __FILE__ ) . 'vendor/autoload.php';
-
- require_once plugin_dir_path( __FILE__ ) . 'FSD_Data_Encryption.php';
 
  require_once  plugin_dir_path( __FILE__ ) . 'gformxooker_functions.php';
 

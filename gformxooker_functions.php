@@ -282,8 +282,7 @@ function gformxooker_get_stripe_api( $posttype ) {
     if(!$stripeKey) {
         return null;
     }
-    $fds = new FSD_Data_Encryption();
-    $stripe = new \Stripe\StripeClient($fds->decrypt( $stripeKey ));
+    $stripe = new \Stripe\StripeClient($stripeKey);
     return $stripe;
 }
 
