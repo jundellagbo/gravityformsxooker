@@ -3,7 +3,7 @@
  * Plugin Name: Gravity Forms Xooker
  * Plugin URI: https://github.com/jundellagbo/gravityformsxooker
  * Description: Extended functionality for Gravity Form from Xooker Team
- * Version: 1.4.2
+ * Version: 1.5.2
  * Author: JJXooker
  * Author URI: mailto:jj@xooker.com
  * License: GPL-2.0+

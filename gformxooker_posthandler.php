@@ -29,7 +29,7 @@ function gformxooker_stripe_key_is_valid( $secret_key ) {
   \Stripe\Stripe::setApiKey($secret_key);
   try {
       $account = \Stripe\Account::retrieve();
-      return true;
+      return $account;
   } catch (\Stripe\Exception\AuthenticationException $e) {
       return false;
   } catch (\Exception $e) {
@@ -49,9 +49,15 @@ function gformxooker_post_saved_notice() {
         delete_transient('gformxooker_stripe_key_error' . $user_id);
     }
 
-    if (get_transient('gformxooker_stripe_key_success' . $user_id)) {
+    $accountSuccess = get_transient('gformxooker_stripe_key_success' . $user_id);
+    if ($accountSuccess) {
+        $account = json_decode( $accountSuccess, true );
         echo '<div class="notice notice-success is-dismissible">';
         echo '<p>Stripe account key is valid!</p>';
+        echo '<p>Business name: ' . $account['business_profile']['name'] . '</p>';
+        echo '<p>Business phone: ' . $account['business_profile']['support_phone'] . '</p>';
+        echo '<p>Business email: ' . $account['business_profile']['support_email'] . '</p>';
+        echo '<p>Business url: ' . $account['business_profile']['url'] . '</p>';
         echo '</div>';
 
         // Delete the transient so notice shows only once
@@ -71,12 +77,13 @@ function gformxooker_stripe_acc_save_post() {
   }
 
   $value = sanitize_text_field(  $_POST['_gformxooker_stripe_account_key'] );
+  $account = gformxooker_stripe_key_is_valid( $value );
   if(!gformxooker_stripe_key_is_valid( $value )) {
     set_transient('gformxooker_stripe_key_error' . get_current_user_id(), true, 30);
   }
 
   update_post_meta( $post->ID, "_gformxooker_stripe_account_key", $value);
-  set_transient('gformxooker_stripe_key_success' . get_current_user_id(), true, 30);
+  set_transient('gformxooker_stripe_key_success' . get_current_user_id(), json_encode( $account ), 30);
 }
 add_action( 'save_post', 'gformxooker_stripe_acc_save_post' );
 
